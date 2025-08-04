@@ -1,0 +1,975 @@
+{
+    "DEKISPART_CHK_0001": {
+        "series": "DEKISPART",
+        "name": "stdItmSとstdUserIDの組み合わせチェック (LAN)",
+        "user_message": "stdItmSとstdUserIDの組み合わせが不正です。",
+        "severity": "エラー",
+        "description": "stdItmSが「ＬＡＮ」の場合、stdUserIDは「012」で始まる必要があります。stdUserIDが「012」で始まる場合、stdItmSは「ＬＡＮ」である必要があります。この条件に合致しない場合に検出されます。"
+    },
+    "DEKISPART_CHK_0002": {
+        "series": "DEKISPART",
+        "name": "stdItmSとstdUserIDの組み合わせチェック (単体)",
+        "user_message": "stdItmSとstdUserIDの組み合わせが不正です。",
+        "severity": "エラー",
+        "description": "stdItmSが「単体」の場合、stdUserIDは「8001」で始まる必要があります。stdUserIDが「8001」で始まる場合、stdItmSは「単体」である必要があります。この条件に合致しない場合に検出されます。"
+    },
+    "DEKISPART_CHK_0003": {
+        "series": "DEKISPART",
+        "name": "stdItmSとstdUserIDの組み合わせチェック (レンタル)",
+        "user_message": "stdItmSとstdUserIDの組み合わせが不正です。",
+        "severity": "エラー",
+        "description": "stdItmSが「レンタル」の場合、stdUserIDは「629」で始まる必要があります。stdUserIDが「629」で始まる場合、stdItmSは「レンタル」である必要があります。この条件に合致しない場合に検出されます。"
+    },
+    "DEKISPART_CHK_0004": {
+        "series": "DEKISPART",
+        "name": "stdItmS「その他」/空白時のstdUserIDチェック",
+        "user_message": "stdItmSが「その他」または空白の場合のstdUserIDが不正です。",
+        "severity": "エラー",
+        "description": "stdKaiyakuがFalseの場合に適用されます。stdItmSが「その他」の場合、stdUserIDは空白である必要があります。stdItmSが空白の場合、stdUserIDは「0000」で始まる必要があります。これらの条件に合致しない場合に検出されます。"
+    },
+    "DEKISPART_CHK_0005": {
+        "series": "DEKISPART",
+        "name": "stdUserID先頭8桁半角チェック",
+        "user_message": "stdUserIDの先頭8桁が半角ではありません。",
+        "severity": "エラー",
+        "description": "stdUserIDの先頭8桁が半角英数字であるかを確認します。半角英数字以外が含まれる場合に検出されます。"
+    },
+    "DEKISPART_CHK_0006": {
+        "series": "DEKISPART",
+        "name": "stdUserID不正文字チェック",
+        "user_message": "stdUserIDに不正な文字が含まれています。",
+        "severity": "エラー",
+        "description": "stdUserIDに全角の括弧（「（」「）」）やハイフン（「－」）が含まれている場合に検出されます。これらは半角である必要があります。"
+    },
+    "DEKISPART_CHK_0007": {
+        "series": "DEKISPART",
+        "name": "stdUserID桁数・数値・特定値チェック",
+        "user_message": "stdUserIDが半角1～7桁の数字ではない、または不正な値です。",
+        "severity": "エラー",
+        "description": "stdUserIDは半角数字で1～7桁である必要があります。また、stdUserIDの値が「9」、「13」、「15」のいずれかである場合は不正です。これらの条件に合致しない場合に検出されます。"
+    },
+    "DEKISPART_CHK_0008": {
+        "series": "DEKISPART",
+        "name": "stdUserID重複チェック",
+        "user_message": "stdUserIDが重複しています。",
+        "severity": "エラー",
+        "description": "提供されたIDリストにstdUserIDが2件以上重複して存在する場合に検出されます。また、IDリストが空の場合もエラーとなります。"
+    },
+    "DEKISPART_CHK_0009": {
+        "series": "DEKISPART",
+        "name": "stdUserIDとstdSuppIDの先頭8桁一致チェック",
+        "user_message": "stdUserIDとstdSuppIDの最初の8桁が一致していません。",
+        "severity": "エラー",
+        "description": "stdUserIDとstdSuppIDが存在し、それぞれの値の先頭8桁が一致するかを確認します。一致しない場合に検出されます。"
+    },
+    "DEKISPART_CHK_0010": {
+        "series": "DEKISPART",
+        "name": "stdFlg4 TRUE時のstdName文字チェック",
+        "user_message": "stdFlg4がTRUEの場合、stdNameに特定の文字が含まれています。",
+        "severity": "エラー",
+        "description": "stdFlg4がTRUE（敬称が様）であり、かつstdName（ユーザー名1）に指定されたキーワード（特定の不適切な文字）が含まれている場合に検出されます。"
+    },
+    "DEKISPART_CHK_0011": {
+        "series": "DEKISPART",
+        "name": "stdFlg4 TRUE時のstdTan1空白チェック",
+        "user_message": "stdFlg4がTRUEで、stdTan1が空白ではありません。",
+        "severity": "エラー",
+        "description": "stdFlg4がTRUE（敬称が様）の場合、stdTan1（担当者）は空白である必要があります。空白でない場合に検出されます。"
+    },
+    "DEKISPART_CHK_0012": {
+        "series": "DEKISPART",
+        "name": "stdFlg4 FALSE時のstdTan1空白チェック",
+        "user_message": "stdFlg4がFALSEで、stdTan1が空白です。",
+        "severity": "エラー",
+        "description": "stdFlg4がFALSE（敬称が様以外）の場合、stdTan1（担当者）は空白であってはなりません。空白の場合に検出されます。"
+    },
+    "DEKISPART_CHK_0013": {
+        "series": "DEKISPART",
+        "name": "stdNamCode形式チェック",
+        "user_message": "stdNamCodeが半角6桁の数字ではない、または不正な形式です。",
+        "severity": "エラー",
+        "description": "stdNamCode（商魂コード）は、半角6桁である必要があります。また、数字以外の場合は「B」で始まる必要があります。これらの条件に合致しない場合に検出されます。"
+    },
+    "DEKISPART_CHK_0014": {
+        "series": "DEKISPART",
+        "name": "stdNamCode空白チェック",
+        "user_message": "stdNamCodeが空白です。",
+        "severity": "エラー",
+        "description": "stdNamCode（商魂コード）が空白である場合に検出されます。stdNamCodeは必須項目です。"
+    },
+    "DEKISPART_CHK_0015": {
+        "series": "DEKISPART",
+        "name": "stdSale1形式チェック",
+        "user_message": "stdSale1は半角数字6桁、4桁の 'kshh' または 'A' で始まる必要があります。",
+        "severity": "エラー",
+        "description": "stdSale1（販売店コード1）は、半角数字6桁であるか、または「kshh」で始まる半角4桁であるか、または「A」で始まる必要があります。これらの条件に合致しない場合に検出されます。"
+    },
+    "DEKISPART_CHK_0016": {
+        "series": "DEKISPART",
+        "name": "stdSale1 'ksALL' 検出チェック",
+        "user_message": "stdSale1が'ksALL'を含んでいます",
+        "severity": "エラー",
+        "description": "stdSale1（販売店コード1）に「ksALL」という文字列が含まれている場合に検出されます。この文字列は通常、販売店コードとして適切ではありません。"
+    },
+    "DEKISPART_CHK_0017": {
+        "series": "DEKISPART",
+        "name": "stdSale1空白チェック",
+        "user_message": "stdSale1が空白です。",
+        "severity": "エラー",
+        "description": "stdSale1（販売店コード1）が空白である場合に検出されます。stdSale1は必須項目です。"
+    },
+    "DEKISPART_CHK_0018": {
+        "series": "DEKISPART",
+        "name": "stdSaleNam1空白チェック",
+        "user_message": "stdSaleNam1が空白です。",
+        "severity": "エラー",
+        "description": "stdSaleNam1（販売店名1）が空白である場合に検出されます。stdSaleNam1は必須項目です。"
+    },
+    "DEKISPART_CHK_0019": {
+        "series": "DEKISPART",
+        "name": "stdSale1「004359」とstdSale2の組み合わせチェック",
+        "user_message": "stdSale1が004359の場合、stdSale2は00rで始まる必要があります。",
+        "severity": "エラー",
+        "description": "stdSale1が「004359」の場合、stdSale2（販売店コード2）は「00r」で始まる必要があります。この条件に合致しない場合に検出されます。"
+    },
+    "DEKISPART_CHK_0020": {
+        "series": "DEKISPART",
+        "name": "stdSale1「000286」とstdSale2の組み合わせチェック",
+        "user_message": "stdSale1が000286の場合、stdSale2はkeで始まる必要があります。",
+        "severity": "エラー",
+        "description": "stdSale1が「000286」の場合、stdSale2（販売店コード2）は「ke」で始まる必要があります。この条件に合致しない場合に検出されます。"
+    },
+    "DEKISPART_CHK_0021": {
+        "series": "DEKISPART",
+        "name": "stdSale1「001275」とstdAdd「新潟県」とstdSale2の組み合わせチェック",
+        "user_message": "stdSale1が001275かつstdAddが新潟県で始まる場合、stdSale2はcanonでなければなりません。",
+        "severity": "エラー",
+        "description": "stdSale1が「001275」かつstdAdd（住所）が「新潟県」で始まる場合、stdSale2（販売店コード2）は「canon」である必要があります。この条件に合致しない場合に検出されます。"
+    },
+    "DEKISPART_CHK_0022": {
+        "series": "DEKISPART",
+        "name": "stdSale1「000332」とstdNsyuの組み合わせチェック",
+        "user_message": "stdSale1が000332の場合、stdNsyuは211でなければなりません。",
+        "severity": "エラー",
+        "description": "stdSale1が「000332」の場合、stdNsyu（入金経路）は「211」である必要があります。この条件に合致しない場合に検出されます。"
+    },
+    "DEKISPART_CHK_0023": {
+        "series": "DEKISPART",
+        "name": "stdSale1「A30777」とstdNsyuの組み合わせチェック",
+        "user_message": "stdSale1がA30777の場合、stdNsyuは211でなければなりません。",
+        "severity": "エラー",
+        "description": "stdSale1が「A30777」の場合、stdNsyu（入金経路）は「211」である必要があります。この条件に合致しない場合に検出されます。"
+    },
+    "DEKISPART_CHK_0024": {
+        "series": "DEKISPART",
+        "name": "stdSale1「000583」とstdNsyuの組み合わせチェック",
+        "user_message": "stdSale1が000583の場合、stdNsyuは211でなければなりません。",
+        "severity": "エラー",
+        "description": "stdSale1が「000583」の場合、stdNsyu（入金経路）は「211」である必要があります。この条件に合致しない場合に検出されます。"
+    },
+    "DEKISPART_CHK_0025": {
+        "series": "DEKISPART",
+        "name": "stdSale1「000659」とstdNsyuの組み合わせチェック",
+        "user_message": "stdSale1が000659の場合、stdNsyuは211でなければなりません。",
+        "severity": "エラー",
+        "description": "stdSale1が「000659」の場合、stdNsyu（入金経路）は「211」である必要があります。この条件に合致しない場合に検出されます。"
+    },
+    "DEKISPART_CHK_0026": {
+        "series": "DEKISPART",
+        "name": "stdSale1「000759」とstdNsyuの組み合わせチェック",
+        "user_message": "stdSale1が000759の場合、stdNsyuは211でなければなりません。",
+        "severity": "エラー",
+        "description": "stdSale1が「000759」の場合、stdNsyu（入金経路）は「211」である必要があります。この条件に合致しない場合に検出されます。"
+    },
+    "DEKISPART_CHK_0027": {
+        "series": "DEKISPART",
+        "name": "stdSaleNam1に紐づく得意先名1の先頭文字チェック",
+        "user_message": "得意先コードに紐づく得意先名1の先頭に不正な記号があります。",
+        "severity": "エラー",
+        "description": "stdKaiyakuがFALSEの場合、stdSaleNam1（販売店名1）に紐づく得意先マスタの得意先名1の先頭が、特定の不正な記号（例: 半角スペース、全角スペース、スラッシュ、アスタリスク、ハイフン、ピリオド、プラス、ドル記号など）で始まっている場合に検出されます。これらは得意先名として不適切です。"
+    },
+    "DEKISPART_CHK_0028": {
+        "series": "DEKISPART",
+        "name": "stdSbiko「年」表記チェック",
+        "user_message": "stdSbikoには「年」が含まれている必要があります。",
+        "severity": "警告",
+        "description": "stdKaiyakuがFALSEでstdAcyear（加入年数）が1以外の場合、stdSbikoが空白でなく、「年」という文字が含まれていない場合に検出されます。備考欄の記載に「年」の表記があるか確認します。"
+    },
+    "DEKISPART_CHK_0029": {
+        "series": "DEKISPART",
+        "name": "stdFlg3 TRUEチェック",
+        "user_message": "stdFlg3がTRUEの場合はNGです。",
+        "severity": "エラー",
+        "description": "stdFlg3がTRUE（チェック済みを意味するフラグ）になっている場合に検出されます。通常、このフラグはFALSEである必要があります。"
+    },
+    "DEKISPART_CHK_0030": {
+        "series": "DEKISPART",
+        "name": "退会済の特別計算ユーザーの契約満了日チェック",
+        "user_message": "stdKaiyakuがTRUEで、stdbiko4に'特別計算'が含まれ、契約満了日から2か月以上経過している場合はNGです。",
+        "severity": "エラー",
+        "description": "stdKaiyakuがTRUE（退会済み）で、stdbiko4に「特別計算」が含まれており、かつstdReyear1（契約満了日）から2か月以上経過している場合に検出されます。退会済みで特別計算の契約が長期にわたって満了日を超えているケースを確認します。"
+    },
+    "DEKISPART_CHK_0031": {
+        "series": "DEKISPART",
+        "name": "stdKaiyaku TRUEとstdFlg1 TRUEの組み合わせチェック",
+        "user_message": "stdKaiyakuがTRUEで、stdFlg1がTRUEの場合はNGです。",
+        "severity": "エラー",
+        "description": "stdKaiyakuがTRUE（退会済み）であり、かつstdFlg1がTRUEになっている場合に検出されます。これら二つのフラグが同時にTRUEになることは通常ありません。"
+    },
+    "DEKISPART_CHK_0032": {
+        "series": "DEKISPART",
+        "name": "stdNsyu「121」とトータルネット登録チェック",
+        "user_message": "stdNsyuが121で、トータルネットに登録されていません。",
+        "severity": "エラー",
+        "description": "stdNsyu（入金経路）が「121」の場合、stdIDが補助ファイルのトータルネットリストに登録されている必要があります。登録されていない場合に検出されます。"
+    },
+    "DEKISPART_CHK_0033": {
+        "series": "DEKISPART",
+        "name": "stdJifuriDM TRUEとトータルネット登録チェック",
+        "user_message": "stdJifuriDMがTrueで、自振DM不要販売店リストにあるものが登録されています",
+        "severity": "エラー",
+        "description": "stdJifuriDMがTRUEであり、かつstdSale1（販店1マスタ）が補助ファイルのトータルネットリストに存在する場合に検出されます。"
+    },
+    "DEKISPART_CHK_0034": {
+        "series": "DEKISPART",
+        "name": "stdJifuriDM TRUEと自振DM不要販売店リストチェック",
+        "user_message": "stdJifuriDMがTrueで、自振DM不要販売店リストにあるものが登録されています",
+        "severity": "エラー",
+        "description": "stdJifuriDMがTRUEかつ退会ユーザーではない場合に、stdSale1（販店1マスタ）が自振DM不要販売店リストに存在する場合に検出されます。"
+    },
+    "DEKISPART_CHK_0035": {
+        "series": "DEKISPART",
+        "name": "stdJifuriDM TRUEとstdbiko3「自振DM不要」の組み合わせチェック",
+        "user_message": "stdJifuriDMがTRUEで、stdbiko3に「自振DM不要」が含まれています。",
+        "severity": "エラー",
+        "description": "stdJifuriDMがTRUE（自振DM対象）であり、かつstdbiko3に「自振DM不要」という文字列が含まれている場合に検出されます。設定の矛盾を確認します。"
+    },
+    "DEKISPART_CHK_0036": {
+        "series": "DEKISPART",
+        "name": "stdJifuriDM TRUEとstdKbiko「更新案内不要」の組み合わせチェック",
+        "user_message": "stdJifuriDMがTRUEで、stdKbikoに「更新案内不要」が含まれています。",
+        "severity": "エラー",
+        "description": "stdJifuriDMがTRUE（自振DM対象）であり、退会ユーザーではないにもかかわらず、stdKbikoに「更新案内不要」という文字列が含まれている場合に検出されます。DM送付対象と案内不要の矛盾を確認します。"
+    },
+    "DEKISPART_CHK_0037": {
+        "series": "DEKISPART",
+        "name": "退会ユーザーでない場合のstdNonRenewal TRUEチェック",
+        "user_message": "退会ユーザーでないのにstdNonRenewalがTRUEです。",
+        "severity": "エラー",
+        "description": "stdKaiyakuがFALSE（退会ユーザーではない）にもかかわらず、stdNonRenewalがTRUE（更新不要）になっている場合に検出されます。データの整合性を確認します。"
+    },
+    "DEKISPART_CHK_0038": {
+        "series": "DEKISPART",
+        "name": "更新案内不要販売店リストと発送設定の組み合わせチェック",
+        "user_message": "stdKaiyakuがFALSEで、入金経路が121以外かつ、stdHassouTypeが1もしくは2で、更新案内不要販売店リストにあるものが登録されています",
+        "severity": "エラー",
+        "description": "stdKaiyakuがFALSE（退会ユーザーではない）で、stdNsyu（入金経路）が「121」以外であり、stdHassouTypeが「1」（送る）または「2」（別送）であるにもかかわらず、stdSale1（販売店コード1）が更新案内不要販売店リストに存在する場合に検出されます。"
+    },
+    "DEKISPART_CHK_0039": {
+        "series": "DEKISPART",
+        "name": "stdHassouType「1または2」とstdKbiko「更新案内不要」の組み合わせチェック",
+        "user_message": "stdKaiyakuがFALSEで、stdHassouTypeが1もしくは2で、stdKbikoに「更新案内不要」が含まれている場合はNGです。",
+        "severity": "エラー",
+        "description": "stdKaiyakuがFALSE（退会ユーザーではない）で、stdHassouTypeが「1」（送る）または「2」（別送）であるにもかかわらず、stdKbikoに「更新案内不要」という文字列が含まれている場合に検出されます。発送設定と備考内容の矛盾を確認します。"
+    },
+    "DEKISPART_CHK_0040": {
+        "series": "DEKISPART",
+        "name": "stdTselに紐づく担当者名の先頭文字チェック",
+        "user_message": "担当者コードに紐づく担当者名に'×'または'・'があります。",
+        "severity": "エラー",
+        "description": "stdKaiyakuがFALSEの場合、stdTsel（担当者コード）に紐づく担当者マスタの担当者名の先頭が、「×」または「・」である場合に検出されます。これらは担当者名として不適切です。"
+    },
+    "DEKISPART_CHK_0041": {
+        "series": "DEKISPART",
+        "name": "stdKaiyaku FALSE時のstdTsel空白チェック",
+        "user_message": "stdKaiyakuがFALSEで、stdTselが空白の場合はNGです。",
+        "severity": "エラー",
+        "description": "stdKaiyakuがFALSE（退会ユーザーではない）の場合、stdTsel（担当者コード）は空白であってはなりません。空白の場合に検出されます。"
+    },
+    "DEKISPART_CHK_0042": {
+        "series": "DEKISPART",
+        "name": "stdKaiyaku FALSE時のstdTpla空白チェック",
+        "user_message": "stdKaiyakuがFALSEで、stdTplaが空白の場合はNGです。",
+        "severity": "エラー",
+        "description": "stdKaiyakuがFALSE（退会ユーザーではない）の場合、stdTpla（所属営業所）は空白であってはなりません。空白の場合に検出されます。"
+    },
+    "DEKISPART_CHK_0043": {
+        "series": "DEKISPART",
+        "name": "stdKaiyaku FALSE時のstdTpla営業所名チェック",
+        "user_message": "stdKaiyakuがFALSEで、stdTplaに指定の営業所名以外が含まれている場合はNGです。",
+        "severity": "エラー",
+        "description": "stdKaiyakuがFALSE（退会ユーザーではない）の場合、stdTpla（所属営業所）が有効な営業所名（九州、仙台、会社、北陸、南九州、名古屋、四国、大手、広島、建築、新潟、本社、本社第1、本社第2、札幌、盛岡、福岡、関東、関西）のいずれかであるかを確認します。指定の営業所名以外の場合に検出されます。"
+    },
+    "DEKISPART_CHK_0044": {
+        "series": "DEKISPART",
+        "name": "退会ユーザーのstdReyear1未来日付チェック",
+        "user_message": "stdKaiyakuがTRUEで、stdReyear1が未来の日付になっている場合はNGです。",
+        "severity": "エラー",
+        "description": "stdKaiyakuがTRUE（退会済み）で、stdReyear1（契約満了日）が現在日付より未来になっている場合に検出されます。ただし、stdNameに「▲」「×」「■」のいずれかが含まれる場合はこのチェックをスキップします。日付形式が不正な場合もエラーとなります。"
+    },
+    "DEKISPART_CHK_0045": {
+        "series": "DEKISPART",
+        "name": "stdKaiyaku FALSE時のstdAcday空白チェック",
+        "user_message": "stdKaiyakuがFALSEの場合、stdAcdayは空白であってはなりません。",
+        "severity": "エラー",
+        "description": "stdKaiyakuがFALSE（退会ユーザーではない）の場合、stdAcdayは空白であってはなりません。stdAcdayは必須項目です。"
+    },
+    "DEKISPART_CHK_0046": {
+        "series": "DEKISPART",
+        "name": "stdKaiyaku FALSE時のstdRemon空白チェック",
+        "user_message": "stdKaiyakuがFALSEの場合、stdRemonは空白であってはなりません。",
+        "severity": "エラー",
+        "description": "stdKaiyakuがFALSE（退会ユーザーではない）の場合、stdRemonは空白であってはなりません。stdRemonは必須項目です。"
+    },
+    "DEKISPART_CHK_0047": {
+        "series": "DEKISPART",
+        "name": "stdKaiyaku FALSE時のstdAcyear空白チェック",
+        "user_message": "stdKaiyakuがFALSEの場合、stdAcyearは空白であってはなりません。",
+        "severity": "エラー",
+        "description": "stdKaiyakuがFALSE（退会ユーザーではない）の場合、stdAcyearは空白であってはなりません。stdAcyearは必須項目です。"
+    },
+    "DEKISPART_CHK_0048": {
+        "series": "DEKISPART",
+        "name": "stdKaiyaku FALSE時のstdReyear1空白チェック",
+        "user_message": "stdKaiyakuがFALSEの場合、stdReyear1は空白であってはなりません。",
+        "severity": "エラー",
+        "description": "stdKaiyakuがFALSE（退会ユーザーではない）の場合、stdReyear1は空白であってはなりません。stdReyear1は必須項目です。"
+    },
+    "DEKISPART_CHK_0049": {
+        "series": "DEKISPART",
+        "name": "stdKaiyaku FALSE時のstdReyear2空白チェック",
+        "user_message": "stdKaiyakuがFALSEの場合、stdReyear2は空白であってはなりません。",
+        "severity": "エラー",
+        "description": "stdKaiyakuがFALSE（退会ユーザーではない）の場合、stdReyear2は空白であってはなりません。stdReyear2は必須項目です。"
+    },
+    "DEKISPART_CHK_0050": {
+        "series": "DEKISPART",
+        "name": "stdKaiyaku FALSE時のstdKainsyu空白チェック",
+        "user_message": "stdKaiyakuがFALSEの場合、stdKainsyuは空白であってはなりません。",
+        "severity": "エラー",
+        "description": "stdKaiyakuがFALSE（退会ユーザーではない）の場合、stdKainsyuは空白であってはなりません。stdKainsyuは必須項目です。"
+    },
+    "DEKISPART_CHK_0051": {
+        "series": "DEKISPART",
+        "name": "stdKaiyaku FALSE時のstdName空白チェック",
+        "user_message": "stdKaiyakuがFALSEの場合、stdNameは空白であってはなりません。",
+        "severity": "エラー",
+        "description": "stdKaiyakuがFALSE（退会ユーザーではない）の場合、stdNameは空白であってはなりません。stdNameは必須項目です。"
+    },
+    "DEKISPART_CHK_0052": {
+        "series": "DEKISPART",
+        "name": "stdKaiyaku FALSE時のstdNamef空白チェック",
+        "user_message": "stdKaiyakuがFALSEの場合、stdNamefは空白であってはなりません。",
+        "severity": "エラー",
+        "description": "stdKaiyakuがFALSE（退会ユーザーではない）の場合、stdNamefは空白であってはなりません。stdNamefは必須項目です。"
+    },
+    "DEKISPART_CHK_0053": {
+        "series": "DEKISPART",
+        "name": "stdKaiyaku FALSE時のstdZip空白チェック",
+        "user_message": "stdKaiyakuがFALSEの場合、stdZipは空白であってはなりません。",
+        "severity": "エラー",
+        "description": "stdKaiyakuがFALSE（退会ユーザーではない）の場合、stdZipは空白であってはなりません。stdZipは必須項目です。"
+    },
+    "DEKISPART_CHK_0054": {
+        "series": "DEKISPART",
+        "name": "stdKaiyaku FALSE時のstdAdd空白チェック",
+        "user_message": "stdKaiyakuがFALSEの場合、stdAddは空白であってはなりません。",
+        "severity": "エラー",
+        "description": "stdKaiyakuがFALSE（退会ユーザーではない）の場合、stdAddは空白であってはなりません。stdAddは必須項目です。"
+    },
+    "DEKISPART_CHK_0055": {
+        "series": "DEKISPART",
+        "name": "stdKaiyaku FALSE時のstdTell空白チェック",
+        "user_message": "stdKaiyakuがFALSEの場合、stdTellは空白であってはなりません。",
+        "severity": "エラー",
+        "description": "stdKaiyakuがFALSE（退会ユーザーではない）の場合、stdTellは空白であってはなりません。stdTellは必須項目です。"
+    },
+    "DEKISPART_CHK_0056": {
+        "series": "DEKISPART",
+        "name": "stdKaiyaku FALSEとstdKainsyu「DまたはCD」とstdbiko4「会員種特別計算」の組み合わせチェック",
+        "user_message": "stdKaiyakuがFALSEかつ、stdKainsyuがDまたはCDで、stdbiko4に'会員種特別計算'が含まれている場合、NGです。",
+        "severity": "エラー",
+        "description": "stdKaiyakuがFALSE（退会ユーザーではない）で、stdKainsyu（会員種別）が「D」または「CD」であり、かつstdbiko4に「会員種特別計算」という文字列が含まれている場合に検出されます。これらの組み合わせは不適切です。"
+    },
+    "DEKISPART_CHK_0057": {
+        "series": "DEKISPART",
+        "name": "stdNsyu「121」とstdHassouType「0」の組み合わせチェック",
+        "user_message": "stdNsyu(入金経路)が121でstdHassouType(更新案内不要（0=不要、1=送る、2=別送）)が0の場合NGです。",
+        "severity": "エラー",
+        "description": "stdNsyu（入金経路）が「121」であり、かつstdHassouType（更新案内不要フラグ）が「0」（不要）である場合に検出されます。入金経路と更新案内不要フラグの矛盾を確認します。"
+    },
+    "DEKISPART_CHK_0058": {
+        "series": "DEKISPART",
+        "name": "stdNsyu「121」とstdKbiko「更新案内不要」の組み合わせチェック",
+        "user_message": "stdNsyu(入金経路)が121でstdKbiko(備考（更新・一斉）)に「更新案内不要」を含む場合NG",
+        "severity": "エラー",
+        "description": "stdNsyu（入金経路）が「121」であり、かつstdKbiko（備考）に「更新案内不要」という文字列が含まれている場合に検出されます。入金経路と備考内容の矛盾を確認します。"
+    },
+    "DEKISPART_CHK_0059": {
+        "series": "DEKISPART",
+        "name": "担当者マスタの担当敬称とstdFlg4の整合性チェック",
+        "user_message": "担当者マスタの担当敬称とstdFlg4の整合性が取れていません",
+        "severity": "エラー",
+        "description": "担当者マスタのM列（担当敬称）と stdFlg4 の整合性をチェックします。「様」の場合はstdFlg4がTRUE、「御中」の場合はstdFlg4がFALSE、それ以外はエラーとなります。"
+    },
+    "INNOSITE_CHK_0001": {
+        "series": "INNOSITE",
+        "name": "stdiinnoid 8桁半角数字チェック",
+        "user_message": "stdiinnoidが8桁の半角数字でないのでNG",
+        "severity": "エラー",
+        "description": "stdiinnoid（ID）が8桁の半角数字であるかを確認します。8桁の半角数字でない場合に検出されます。"
+    },
+    "INNOSITE_CHK_0003": {
+        "series": "INNOSITE",
+        "name": "保守整理番号(stdid_i) 空白チェック",
+        "user_message": "保守整理番号が空白なのでNG",
+        "severity": "エラー",
+        "description": "stdid_i（保守整理番号）が空白である場合に検出されます。保守整理番号は必須項目です。"
+    },
+    "INNOSITE_CHK_0004": {
+        "series": "INNOSITE",
+        "name": "stdisale1(販店1マスタ) 形式チェック",
+        "user_message": "stdisale1は半角数字6桁、4桁の 'kshh' または 'A' で始まる必要があります。",
+        "severity": "エラー",
+        "description": "stdisale1（販店1マスタ）は、半角数字6桁、または「kshh」で始まる半角4桁、または「A」で始まる必要があります。これらの条件に合致しない場合に検出されます。"
+    },
+    "INNOSITE_CHK_0005": {
+        "series": "INNOSITE",
+        "name": "stdisale1 'ksALL' 検出チェック",
+        "user_message": "stdisale1が'ksALL'を含んでいます",
+        "severity": "エラー",
+        "description": "stdisale1（販店1マスタ）に「ksALL」という文字列が含まれている場合に検出されます。この文字列は通常、販売店コードとして適切ではありません。"
+    },
+    "INNOSITE_CHK_0006": {
+        "series": "INNOSITE",
+        "name": "stdisale1 '004359' と stdisale2 空白チェック",
+        "user_message": "stdisale1が004359の場合、stdisale2が空白なのでNG",
+        "severity": "エラー",
+        "description": "stdisale1が「004359」の場合、stdisale2（販店2マスタ）が空白である場合に検出されます。"
+    },
+    "INNOSITE_CHK_0007": {
+        "series": "INNOSITE",
+        "name": "stdisale1 '000286' と stdisale2 空白チェック",
+        "user_message": "stdisale1が000286の場合、stdisale2が空白だとNGです。",
+        "severity": "エラー",
+        "description": "stdisale1が「000286」の場合、stdisale2（販店2マスタ）が空白である場合に検出されます。"
+    },
+    "INNOSITE_CHK_0008": {
+        "series": "INNOSITE",
+        "name": "stdisale1 '001275'、stdAdd '新潟県'、stdisale2 空白チェック",
+        "user_message": "stdisale1が001275かつstdAddが新潟県から始まる場合、stdisale2が空白だとNGです。",
+        "severity": "エラー",
+        "description": "stdisale1が「001275」で、かつ補助ファイルの保守整理番号に紐づく住所が「新潟県」から始まる場合、stdisale2（販店2マスタ）が空白である場合に検出されます。"
+    },
+    "INNOSITE_CHK_0009": {
+        "series": "INNOSITE",
+        "name": "退会済でない場合の登録販売店 倒産チェック",
+        "user_message": "stdikaiyakuがfalseの場合、stdisale1が倒産販売店リストに含まれている場合NGです。",
+        "severity": "エラー",
+        "description": "stdikaiyakuがFALSE（退会済みではない）にもかかわらず、stdisale1（販店1マスタ）が倒産販売店リストに含まれている場合に検出されます。"
+    },
+    "INNOSITE_CHK_0010": {
+        "series": "INNOSITE",
+        "name": "stdisale1 '000332' と stdiNsyu '211' 組み合わせチェック",
+        "user_message": "stdisale1が000332の場合、stdiNsyuが211でないとNGです。",
+        "severity": "エラー",
+        "description": "stdisale1が「000332」の場合、stdiNsyu（入金経路）が「211」であるかを確認します。211でない場合に検出されます。"
+    },
+    "INNOSITE_CHK_0011": {
+        "series": "INNOSITE",
+        "name": "stdisale1 'A30777' と stdiNsyu '211' 組み合わせチェック",
+        "user_message": "stdisale1がA30777の場合、stdiNsyuは211でなければなりません。",
+        "severity": "エラー",
+        "description": "stdisale1が「A30777」の場合、stdiNsyu（入金経路）が「211」であるかを確認します。211でない場合に検出されます。"
+    },
+    "INNOSITE_CHK_0012": {
+        "series": "INNOSITE",
+        "name": "stdisale1 '000583' と stdiNsyu '211' 組み合わせチェック",
+        "user_message": "stdisale1が000583の場合、stdiNsyuは211でなければなりません。",
+        "severity": "エラー",
+        "description": "stdisale1が「000583」の場合、stdiNsyu（入金経路）が「211」であるかを確認します。211でない場合に検出されます。"
+    },
+    "INNOSITE_CHK_0013": {
+        "series": "INNOSITE",
+        "name": "stdisale1 '000659' と stdiNsyu '211' 組み合わせチェック",
+        "user_message": "stdisale1が000659の場合、stdiNsyuは211でなければなりません。",
+        "severity": "エラー",
+        "description": "stdisale1が「000659」の場合、stdiNsyu（入金経路）が「211」であるかを確認します。211でない場合に検出されます。"
+    },
+    "INNOSITE_CHK_0014": {
+        "series": "INNOSITE",
+        "name": "stdisale1 '000759' と stdiNsyu '211' 組み合わせチェック",
+        "user_message": "stdisale1が000759の場合、stdiNsyuは211でなければなりません。",
+        "severity": "エラー",
+        "description": "stdisale1が「000759」の場合、stdiNsyu（入金経路）が「211」であるかを確認します。211でない場合に検出されます。"
+    },
+    "INNOSITE_CHK_0015": {
+        "series": "INNOSITE",
+        "name": "退会済でない場合のstdiacyear '2以上' と stdibiko1 '複数年' 記載チェック",
+        "user_message": "stdikaiyakuがFalseかつ、stdiacyearが2以上の場合、stdibiko1に複数年が含まれていないとNGです。",
+        "severity": "エラー",
+        "description": "stdikaiyakuがFALSE（退会済みではない）で、stdiacyear（加入年数）が2以上の場合、stdibiko1（備考1）に「複数年」という文字列が含まれているかを確認します。含まれていない場合に検出されます。"
+    },
+    "INNOSITE_CHK_0016": {
+        "series": "INNOSITE",
+        "name": "退会ユーザーの補助金記載チェック",
+        "user_message": "stdibiko1、stdibiko2に補助金を含む場合はチェックが必要です。",
+        "severity": "エラー",
+        "description": "stdikaiyakuがTRUE（退会済み）の場合、stdibiko1またはstdibiko2（備考1または備考2）に「補助金」という文字列が含まれている場合に検出されます。退会済みの補助金関連の記載を確認します。"
+    },
+    "INNOSITE_CHK_0017": {
+        "series": "INNOSITE",
+        "name": "3本目半額レ点チェックと本数(stdiKainsyu)チェック",
+        "user_message": "3本目半額レ点チェックがTRUEで、本数が3本以上でないとNGです。",
+        "severity": "エラー",
+        "description": "stdidicount（3本目半額レ点チェック）がTRUEの場合、stdiKainsyu（本数）が3本以上であるかを確認します。3本未満の場合に検出されます。"
+    },
+    "INNOSITE_CHK_0018": {
+        "series": "INNOSITE",
+        "name": "退会済み と 処理中フラグの組み合わせチェック",
+        "user_message": "退会がTrueで処理中がtrueの場合NGです。",
+        "severity": "エラー",
+        "description": "stdikaiyakuがTRUE（退会済み）であり、かつstdiflg1（処理中フラグ）がTRUEになっている場合に検出されます。これら二つのフラグが同時にTRUEになることは通常ありません。"
+    },
+    "INNOSITE_CHK_0021": {
+        "series": "INNOSITE",
+        "name": "stdiNsyu '121' と トータルネット登録チェック",
+        "user_message": "stdiNsyu(入金経路)が121でトータルネットに登録されていません。",
+        "severity": "エラー",
+        "description": "stdiNsyu（入金経路）が「121」の場合、stdiinnoidが補助ファイルのトータルネットリストに登録されている必要があります。登録されていない場合に検出されます。"
+    },
+    "INNOSITE_CHK_0022": {
+        "series": "INNOSITE",
+        "name": "退会済でない場合のstdireyear1 過去日付チェック",
+        "user_message": "stdikaiyakuがFalseかつstdireyear1が過去の日付になっている場合NGです。",
+        "severity": "エラー",
+        "description": "stdikaiyakuがFALSE（退会済みではない）にもかかわらず、stdireyear1（契約満了日1）が現在日付より過去になっている場合に検出されます。"
+    },
+    "INNOSITE_CHK_0023": {
+        "series": "INNOSITE",
+        "name": "退会ユーザーのstdireyear1 未来日付チェック",
+        "user_message": "stdikaiyakuがtrueの場合、stdireyear1が未来の日付になっていたらNGです。ただし、stdibiko2に退会の文字があればOKです。",
+        "severity": "エラー",
+        "description": "stdikaiyakuがTRUE（退会済み）で、stdireyear1（契約満了日1）が現在日付より未来になっている場合に検出されます。ただし、stdibiko2（備考2）に「退会」という文字列が含まれている場合はこのチェックをスキップします。"
+    },
+    "INNOSITE_CHK_0025": {
+        "series": "INNOSITE",
+        "name": "退会ユーザーのstdiacday 未来日付チェック",
+        "user_message": "stdikaiyakuがtrueの場合、stdiacdayが未来の日付になっていたらNGです。ただし、stdibiko2に退会の文字があればOKです。",
+        "severity": "エラー",
+        "description": "stdikaiyakuがTRUE（退会済み）で、stdiacday（加入日）が現在日付より未来になっている場合に検出されます。ただし、stdibiko2（備考2）に「退会」という文字列が含まれている場合はこのチェックをスキップします。"
+    },
+    "INNOSITE_CHK_0026": {
+        "series": "INNOSITE",
+        "name": "退会済でない場合のstdiremon 空白チェック",
+        "user_message": "stdikaiyakuがfalseの場合、stdiremonが空白の場合NGです。",
+        "severity": "エラー",
+        "description": "stdikaiyakuがFALSE（退会済みではない）の場合、stdiremon（月額使用料）が空白である場合に検出されます。月額使用料は必須項目です。"
+    },
+    "INNOSITE_CHK_0028": {
+        "series": "INNOSITE",
+        "name": "退会済でない場合のstdireyear1 空白チェック",
+        "user_message": "stdikaiyakuがfalseの場合、stdireyear1が空白の場合はNGです。",
+        "severity": "エラー",
+        "description": "stdikaiyakuがFALSE（退会済みではない）の場合、stdireyear1（契約満了日1）が空白である場合に検出されます。契約満了日1は必須項目です。"
+    },
+    "INNOSITE_CHK_0029": {
+        "series": "INNOSITE",
+        "name": "退会済でない場合のstdireyear2 空白チェック",
+        "user_message": "stdikaiyakuがfalseの場合、stdireyear2が空白の場合はNGです。",
+        "severity": "エラー",
+        "description": "stdikaiyakuがFALSE（退会済みではない）の場合、stdireyear2（契約満了日2）が空白である場合に検出されます。契約満了日2は必須項目です。"
+    },
+    "INNOSITE_CHK_0030": {
+        "series": "INNOSITE",
+        "name": "退会済でない場合のstdiKainsyu 空白チェック",
+        "user_message": "stdikaiyakuがfalseの場合、stdiKainsyuが空白の場合はNGです。",
+        "severity": "エラー",
+        "description": "stdikaiyakuがFALSE（退会済みではない）の場合、stdiKainsyu（会員種別）が空白である場合に検出されます。会員種別は必須項目です。"
+    },
+    "INNOSITE_CHK_0033": {
+        "series": "INNOSITE",
+        "name": "退会済でない場合のstditselno紐づく担当者名先頭文字チェック",
+        "user_message": "担当者コードに紐づく担当者名に'×'または'・'があります。",
+        "severity": "エラー",
+        "description": "stdikaiyakuがFALSE（退会済みではない）の場合、stditselno（担当者コード）に紐づく担当者マスタの担当者名の先頭が、「×」または「・」である場合に検出されます。これらは担当者名として不適切です。"
+    },
+    "INNOSITE_CHK_0034": {
+        "series": "INNOSITE",
+        "name": "更新案内",
+        "user_message": "備考に更新案内不要の記載がない場合に、更新案内　レ点チェック＝更新案内不要販売店ではないか",
+        "severity": "エラー",
+        "description": "備考に更新案内不要の記載がない、かつ、stdiNotifyRenewalType(更新案内不要（0＝不要　1＝送る　2＝別送）)　が　1　もしくは　2　かつ 更新案内不要リストにいる販売店"
+    },
+    "INNOSITE_CHK_0035": {
+        "series": "INNOSITE",
+        "name": "更新案内",
+        "user_message": "XXXXX",
+        "severity": "エラー",
+        "description": "備考に更新案内不要の記載がない場合に、更新案内　レ点チェック＝更新案内不要販売店ではないか"
+    },
+    "INNOSITE_CHK_0036": {
+        "series": "INNOSITE",
+        "name": "更新案内",
+        "user_message": "XXXXX",
+        "severity": "エラー",
+        "description": "備考に更新案内不要の記載がない場合に、更新案内　レ点チェック＝更新案内不要販売店ではないか"
+    },
+    "INNOSITE_CHK_0037": {
+        "series": "INNOSITE",
+        "name": "更新案内",
+        "user_message": "XXXXX",
+        "severity": "エラー",
+        "description": "備考に更新案内不要の記載がない場合に、更新案内　レ点チェック＝更新案内不要販売店ではないか"
+    },
+    "INNOSITE_CHK_0038": {
+        "series": "INNOSITE",
+        "name": "更新案内",
+        "user_message": "XXXXX",
+        "severity": "エラー",
+        "description": "備考に更新案内不要の記載がない場合に、更新案内　レ点チェック＝更新案内不要販売店ではないか"
+    },
+    "DEKISPART_SCHOOL_CHK_0002": {
+        "series": "DEKISPART_SCHOOL",
+        "name": "stdDID 8桁半角数字チェック",
+        "user_message": "stdDIDが8桁の半角数字でないのでNG",
+        "severity": "エラー",
+        "description": "stdDID（ID）が8桁の半角数字であるかを確認します。8桁の半角数字でない場合に検出されます。"
+    },
+    "DEKISPART_SCHOOL_CHK_0003": {
+        "series": "DEKISPART_SCHOOL",
+        "name": "stdDID 重複チェック",
+        "user_message": "stdDIDが重複しています。",
+        "severity": "エラー",
+        "description": "提供されたIDリストにstdDIDが重複して存在する場合に検出されます。"
+    },
+    "DEKISPART_SCHOOL_CHK_0004": {
+        "series": "DEKISPART_SCHOOL",
+        "name": "stdDIDとstdDsupIDの先頭8桁一致チェック",
+        "user_message": "stdDIDとstdDsupIDの最初の8桁が一致していません。",
+        "severity": "エラー",
+        "description": "stdDsupIDが存在し、stdDIDとstdDsupIDそれぞれの値の先頭8桁が一致するかを確認します。一致しない場合に検出されます。"
+    },
+    "DEKISPART_SCHOOL_CHK_0007": {
+        "series": "DEKISPART_SCHOOL",
+        "name": "stdDsale1（販店1マスタ）形式チェック",
+        "user_message": "stdDsale1は半角数字6桁、4桁の 'kshh' または 'A' で始まる必要があります。",
+        "severity": "エラー",
+        "description": "stdDsale1（販店1マスタ）は、半角数字6桁、または「kshh」で始まる半角4桁、または「A」で始まる必要があります。これらの条件に合致しない場合に検出されます。"
+    },
+    "DEKISPART_SCHOOL_CHK_0008": {
+        "series": "DEKISPART_SCHOOL",
+        "name": "stdDsale1 'ksALL' 検出チェック",
+        "user_message": "stdDsale1が'ksALL'を含んでいます",
+        "severity": "エラー",
+        "description": "stdDsale1（販店1マスタ）に「ksALL」という文字列が含まれている場合に検出されます。この文字列は通常、販売店コードとして適切ではありません。"
+    },
+    "DEKISPART_SCHOOL_CHK_0009": {
+        "series": "DEKISPART_SCHOOL",
+        "name": "stdDsale1 '004359' と stdDsale2 空白チェック",
+        "user_message": "stdDsale1が004359の場合、stdDsale2が空白なのでNG",
+        "severity": "エラー",
+        "description": "stdDsale1が「004359」の場合、stdDsale2（販店2マスタ）が空白である場合に検出されます。"
+    },
+    "DEKISPART_SCHOOL_CHK_0010": {
+        "series": "DEKISPART_SCHOOL",
+        "name": "stdDsale1 '000286' と stdDsale2 空白チェック",
+        "user_message": "stdDsale1が000286の場合、stdDsale2が空白だとNGです。",
+        "severity": "エラー",
+        "description": "stdDsale1が「000286」の場合、stdDsale2（販店2マスタ）が空白である場合に検出されます。"
+    },
+    "DEKISPART_SCHOOL_CHK_0011": {
+        "series": "DEKISPART_SCHOOL",
+        "name": "stdDsale1 '001275' と stdDsale2 空白チェック",
+        "user_message": "stdDsale1が001275の場合、stdDsale2が空白だとNGです。",
+        "severity": "エラー",
+        "description": "stdDsale1が「001275」の場合、stdDsale2（販店2マスタ）が空白である場合に検出されます。"
+    },
+    "DEKISPART_SCHOOL_CHK_0012": {
+        "series": "DEKISPART_SCHOOL",
+        "name": "退会済でない場合の登録販売店 倒産チェック",
+        "user_message": "stdDKaiyakuがfalseの場合、stdDsale1が倒産販売店リストに含まれている場合NGです。",
+        "severity": "エラー",
+        "description": "stdDKaiyakuがFALSE（退会済みではない）にもかかわらず、stdDsale1（販店1マスタ）が倒産販売店リストに含まれている場合に検出されます。"
+    },
+    "DEKISPART_SCHOOL_CHK_0013": {
+        "series": "DEKISPART_SCHOOL",
+        "name": "stdDsale1 '000332' と stdDNsyu '211' 組み合わせチェック",
+        "user_message": "stdDsale1が000332の場合、stdDNsyuが211でないとNGです。",
+        "severity": "エラー",
+        "description": "stdDsale1が「000332」の場合、stdDNsyu（入金経路）が「211」であるかを確認します。211でない場合に検出されます。"
+    },
+    "DEKISPART_SCHOOL_CHK_0014": {
+        "series": "DEKISPART_SCHOOL",
+        "name": "stdDsale1 'A30777' と stdDNsyu '211' 組み合わせチェック",
+        "user_message": "stdDsale1がA30777の場合、stdDNsyuは211でなければなりません。",
+        "severity": "エラー",
+        "description": "stdDsale1が「A30777」の場合、stdDNsyu（入金経路）が「211」であるかを確認します。211でない場合に検出されます。"
+    },
+    "DEKISPART_SCHOOL_CHK_0015": {
+        "series": "DEKISPART_SCHOOL",
+        "name": "stdDsale1 '000583' と stdDNsyu '211' 組み合わせチェック",
+        "user_message": "stdDsale1が000583の場合、stdDNsyuは211でなければなりません。",
+        "severity": "エラー",
+        "description": "stdDsale1が「000583」の場合、stdDNsyu（入金経路）が「211」であるかを確認します。211でない場合に検出されます。"
+    },
+    "DEKISPART_SCHOOL_CHK_0016": {
+        "series": "DEKISPART_SCHOOL",
+        "name": "stdDsale1 '000659' と stdDNsyu '211' 組み合わせチェック",
+        "user_message": "stdDsale1が000659の場合、stdDNsyuは211でなければなりません。",
+        "severity": "エラー",
+        "description": "stdDsale1が「000659」の場合、stdDNsyu（入金経路）が「211」であるかを確認します。211でない場合に検出されます。"
+    },
+    "DEKISPART_SCHOOL_CHK_0017": {
+        "series": "DEKISPART_SCHOOL",
+        "name": "stdDsale1 '000759' と stdDNsyu '211' 組み合わせチェック",
+        "user_message": "stdDsale1が000759の場合、stdDNsyuは211でなければなりません。",
+        "severity": "エラー",
+        "description": "stdDsale1が「000759」の場合、stdDNsyu（入金経路）が「211」であるかを確認します。211でない場合に検出されます。"
+    },
+    "DEKISPART_SCHOOL_CHK_0018": {
+        "series": "DEKISPART_SCHOOL",
+        "name": "退会済みと処理中フラグの組み合わせチェック",
+        "user_message": "退会がTrueで処理中がtrueの場合NGです。",
+        "severity": "エラー",
+        "description": "stdDKaiyakuがTRUE（退会済み）であり、かつstdDFlg1（処理中フラグ）がTRUEになっている場合に検出されます。これら二つのフラグが同時にTRUEになることは通常ありません。"
+    },
+    "DEKISPART_SCHOOL_CHK_0019": {
+        "series": "DEKISPART_SCHOOL",
+        "name": "stdDNsyu '121' とトータルネット登録チェック",
+        "user_message": "stdDNsyu(入金経路)が121でトータルネットに登録されていません。",
+        "severity": "エラー",
+        "description": "stdDNsyu（入金経路）が「121」の場合、stdDIDが補助ファイルのトータルネットリストに登録されている必要があります。登録されていない場合に検出されます。"
+    },
+    "DEKISPART_SCHOOL_CHK_0020": {
+        "series": "DEKISPART_SCHOOL",
+        "name": "更新案内不要リストとstdDsale1のチェック",
+        "user_message": "更新案内不要(112)以外でstdDsale1が更新案内不要リストに存在する場合NG",
+        "severity": "エラー",
+        "description": "stdDNsyu（入金経路）が「112」（更新案内不要）以外であり、かつstdDsale1が更新案内不要リストに存在する場合に検出されます。"
+    },
+    "DEKISPART_SCHOOL_CHK_0021": {
+        "series": "DEKISPART_SCHOOL",
+        "name": "更新案内不要(112)以外でstdDsale1が旭測器(B88299)のチェック",
+        "user_message": "更新案内不要(112)以外でstdDsale1が旭測器(B88299)の場合はNGです。",
+        "severity": "エラー",
+        "description": "stdDNsyu（入金経路）が「112」（更新案内不要）以外であり、かつstdDsale1が「B88299」（旭測器）である場合に検出されます。"
+    },
+    "DEKISPART_SCHOOL_CHK_0022": {
+        "series": "DEKISPART_SCHOOL",
+        "name": "退会済でない場合のstdDtselno対象外営業リストチェック",
+        "user_message": "stdDKaiyakuがfalseの場合、stdDtselnoが対象外営業リストに含まれている場合NG",
+        "severity": "エラー",
+        "description": "stdDKaiyakuがFALSE（退会済みではない）にもかかわらず、stdDtselno（担当者コード）が対象外営業リストに含まれている場合に検出されます。"
+    },
+    "DEKISPART_SCHOOL_CHK_0023": {
+        "series": "DEKISPART_SCHOOL",
+        "name": "退会済でない場合のstdDtselno空白チェック",
+        "user_message": "stdDKaiyakuがfalseの場合、stdDtselnoが空白の場合はNGです。",
+        "severity": "エラー",
+        "description": "stdDKaiyakuがFALSE（退会済みではない）の場合、stdDtselno（担当者コード）は空白であってはなりません。空白の場合に検出されます。"
+    },
+    "DEKISPART_SCHOOL_CHK_0024": {
+        "series": "DEKISPART_SCHOOL",
+        "name": "退会済でない場合のstdDReyear1過去日付チェック",
+        "user_message": "stdDKaiyakuがfalseの場合、stdDReyear1が過去の日付になっていたらNGです。",
+        "severity": "エラー",
+        "description": "stdDKaiyakuがFALSE（退会済みではない）にもかかわらず、stdDReyear1（契約満了日1）が現在日付より過去になっている場合に検出されます。"
+    },
+    "DEKISPART_SCHOOL_CHK_0025": {
+        "series": "DEKISPART_SCHOOL",
+        "name": "退会ユーザーのstdDReyear1未来日付チェック",
+        "user_message": "stdDKaiyakuがtrueの場合、stdDReyear1が未来の日付になっていたらNGです。",
+        "severity": "エラー",
+        "description": "stdDKaiyakuがTRUE（退会済み）で、stdDReyear1（契約満了日1）が現在日付より未来になっている場合に検出されます。"
+    },
+    "DEKISPART_SCHOOL_CHK_0026": {
+        "series": "DEKISPART_SCHOOL",
+        "name": "退会済でない場合のstdDAcday1年2ヶ月以上前チェック",
+        "user_message": "stdDKaiyakuがfalseの場合、stdDAcdayが1年2か月以上前ならNGです。",
+        "severity": "エラー",
+        "description": "stdDKaiyakuがFALSE（退会済みではない）にもかかわらず、stdDAcday（加入日）が現在日付から1年2ヶ月以上前である場合に検出されます。"
+    },
+    "DEKISPART_SCHOOL_CHK_0027": {
+        "series": "DEKISPART_SCHOOL",
+        "name": "退会ユーザーのstdDAcday未来日付チェック",
+        "user_message": "stdDKaiyakuがtrueの場合、stdDAcdayが未来の日付になっていたらNGです。",
+        "severity": "エラー",
+        "description": "stdDKaiyakuがTRUE（退会済み）で、stdDAcday（加入日）が現在日付より未来になっている場合に検出されます。"
+    },
+    "DEKISPART_SCHOOL_CHK_0028": {
+        "series": "DEKISPART_SCHOOL",
+        "name": "退会済でない場合のstdDRemon空白チェック",
+        "user_message": "stdDKaiyakuがfalseの場合、stdDRemonが空白の場合はNGです。",
+        "severity": "エラー",
+        "description": "stdDKaiyakuがFALSE（退会済みではない）の場合、stdDRemon（月額使用料）が空白である場合に検出されます。月額使用料は必須項目です。"
+    },
+    "DEKISPART_SCHOOL_CHK_0029": {
+        "series": "DEKISPART_SCHOOL",
+        "name": "退会済でない場合のstdDReyear1空白チェック",
+        "user_message": "stdDKaiyakuがfalseの場合、stdDReyear1が空白の場合はNGです。",
+        "severity": "エラー",
+        "description": "stdDKaiyakuがFALSE（退会済みではない）の場合、stdDReyear1（契約満了日1）が空白である場合に検出されます。契約満了日1は必須項目です。"
+    },
+    "DEKISPART_SCHOOL_CHK_0030": {
+        "series": "DEKISPART_SCHOOL",
+        "name": "退会済でない場合のstdDReyear11年3ヶ月以上先チェック",
+        "user_message": "stdDKaiyakuがfalseの場合、stdDReyear1が1年3か月以上先の場合はNGです。",
+        "severity": "エラー",
+        "description": "stdDKaiyakuがFALSE（退会済みではない）にもかかわらず、stdDReyear1（契約満了日1）が現在日付から1年3ヶ月以上先である場合に検出されます。"
+    },
+    "DEKISPART_SCHOOL_CHK_0031": {
+        "series": "DEKISPART_SCHOOL",
+        "name": "退会済でない場合のstdDReyear2空白チェック",
+        "user_message": "stdDKaiyakuがfalseの場合、stdDReyear2が空白の場合はNGです。",
+        "severity": "エラー",
+        "description": "stdDKaiyakuがFALSE（退会済みではない）の場合、stdDReyear2（契約満了日2）が空白である場合に検出されます。契約満了日2は必須項目です。"
+    },
+    "DEKISPART_SCHOOL_CHK_0032": {
+        "series": "DEKISPART_SCHOOL",
+        "name": "退会ユーザーのstdDKaiyakuOP falseチェック",
+        "user_message": "stdDKaiyakuがtrueの場合、stdDKaiyakuOPがfalseだとNGです。",
+        "severity": "エラー",
+        "description": "stdDKaiyakuがTRUE（退会済み）であるにもかかわらず、stdDKaiyakuOPがFALSE（退会済みオプションが無効）である場合に検出されます。"
+    },
+    "CLOUD_CHK_0001": {
+        "series": "CLOUD",
+        "name": "CloudStoreCode（販店1マスタ）形式チェック",
+        "user_message": "CloudStoreCodeは半角数字6桁、4桁の 'kshh' または 'A' で始まる必要があります。",
+        "severity": "エラー",
+        "description": "CloudStoreCode（販店1マスタ）は、半角数字6桁、または「kshh」で始まる半角4桁、または「A」で始まる必要があります。これらの条件に合致しない場合に検出されます。"
+    },
+    "CLOUD_CHK_0002": {
+        "series": "CLOUD",
+        "name": "CloudStoreCode 'ksALL' 検出チェック",
+        "user_message": "CloudStoreCodeが'ksALL'を含んでいます",
+        "severity": "エラー",
+        "description": "CloudStoreCode（販店1マスタ）に「ksALL」という文字列が含まれている場合に検出されます。この文字列は通常、販売店コードとして適切ではありません。"
+    },
+    "CLOUD_CHK_0003": {
+        "series": "CLOUD",
+        "name": "CloudStoreCode '004359' と CloudStoreCode2 空白チェック",
+        "user_message": "CloudStoreCodeが004359の場合、CloudStoreCode2が空白なのでNG",
+        "severity": "エラー",
+        "description": "CloudStoreCodeが「004359」の場合、CloudStoreCode2（販店2マスタ）が空白である場合に検出されます。"
+    },
+    "CLOUD_CHK_0004": {
+        "series": "CLOUD",
+        "name": "CloudStoreCode '000286' と CloudStoreCode2 空白チェック",
+        "user_message": "CloudStoreCodeが000286の場合、CloudStoreCode2が空白だとNGです。",
+        "severity": "エラー",
+        "description": "CloudStoreCodeが「000286」の場合、CloudStoreCode2（販店2マスタ）が空白である場合に検出されます。"
+    },
+    "CLOUD_CHK_0005": {
+        "series": "CLOUD",
+        "name": "CloudStoreCode '001275' と CloudStoreCode2 空白チェック",
+        "user_message": "CloudStoreCodeが001275の場合、CloudStoreCode2が空白だとNGです。",
+        "severity": "エラー",
+        "description": "CloudStoreCodeが「001275」の場合、CloudStoreCode2（販店2マスタ）が空白である場合に検出されます。"
+    },
+    "CLOUD_CHK_0006": {
+        "series": "CLOUD",
+        "name": "販売店名・その他名に不正文字（▲、×、■）チェック",
+        "user_message": "CloudStoreName, CloudStoreName2, KsNaviStoreName, KsNaviStoreName2, KSARStoreName, KSARStoreName2に▲、×、■を含む場合NGです。",
+        "severity": "エラー",
+        "description": "CloudStoreName, CloudStoreName2, KsNaviStoreName, KsNaviStoreName2, KSARStoreName, KSARStoreName2のいずれかのフィールドに「▲」、「×」、「■」のいずれかの不正な文字が含まれている場合に検出されます。"
+    },
+    "CLOUD_CHK_0007": {
+        "series": "CLOUD",
+        "name": "更新案内送る新進（1）と更新案内不要リストのチェック",
+        "user_message": "更新案内送る新進(1)でCloudStoreCodeが更新案内不要リストに存在する場合NG",
+        "severity": "エラー",
+        "description": "SendUpdateGuidanceStateが「1」（更新案内を送る新進）であるにもかかわらず、CloudStoreCodeが更新案内不要リストに含まれている場合に検出されます。"
+    },
+    "CLOUD_CHK_0008": {
+        "series": "CLOUD",
+        "name": "SendUpdateGuidanceStateと備考欄の記載チェック",
+        "user_message": "SendUpdateGuidanceStateが1以外の場合、NotesForUpdate、NotesForETCに特別発送、更新案内の記載がない場合NGです。",
+        "severity": "エラー",
+        "description": "SendUpdateGuidanceStateが「1」以外の場合、NotesForUpdate（更新案内に関する備考）とNotesForETC（その他の備考）のどちらにも「特別発送」または「更新案内」の記載がない場合に検出されます。"
+    },
+    "CLOUD_CHK_0009": {
+        "series": "CLOUD",
+        "name": "複数年契約時の備考欄記載チェック",
+        "user_message": "複数年の場合に記載がない場合はNG",
+        "severity": "エラー",
+        "description": "複数年であるにもかかわらず、複数年契約に関する備考に適切な記載がない場合に検出されます。"
+    },
+    "CLOUD_CHK_0010": {
+        "series": "CLOUD",
+        "name": "備考（NotesForRTC）補助金日付過去チェック",
+        "user_message": "備考(NotesForRTC)に補助金の記載がある場合に日付が過去になっているとNG",
+        "severity": "エラー",
+        "description": "NotesForRTC（その他の備考）に補助金に関する記載がある場合、その日付が現在日付より過去になっている場合に検出されます。"
+    },
+    "CLOUD_CHK_0011": {
+        "series": "CLOUD",
+        "name": "退会済みと処理中フラグの組み合わせチェック (各サービス)",
+        "user_message": "退会がTrueで処理中がtrueの場合NGです。",
+        "severity": "エラー",
+        "description": "各サービス（データバンク、サイトボックス、フィールドネットなど）において、契約がInactive（退会済み）であり、かつUpdateInprogress（処理中フラグ）がTRUEになっている場合に検出されます。これら二つのフラグが同時にTRUEになることは通常ありません。"
+    },
+    "CLOUD_CHK_0012": {
+        "series": "CLOUD",
+        "name": "加入中で担当営業が売上対象外チェック",
+        "user_message": "加入中で担当営業が売上あがらない営業担当になっている場合NG",
+        "severity": "エラー",
+        "description": "現在加入中であるにもかかわらず、担当営業が売上対象外の営業担当リストに含まれている場合に検出されます。"
+    },
+    "CLOUD_CHK_0013": {
+        "series": "CLOUD",
+        "name": "加入中で契約満了日が過去チェック",
+        "user_message": "加入中で満了日が過去になっている場合NG",
+        "severity": "エラー",
+        "description": "現在加入中であるにもかかわらず、契約満了日が現在日付より過去になっている場合に検出されます。"
+    },
+    "CLOUD_CHK_0014": {
+        "series": "CLOUD",
+        "name": "退会済みで契約満了日が未来チェック",
+        "user_message": "退会中で満了日が未来になっている場合NG",
+        "severity": "エラー",
+        "description": "既に退会済みであるにもかかわらず、契約満了日が現在日付より未来になっている場合に検出されます。"
+    },
+    "CLOUD_CHK_0016": {
+        "series": "CLOUD",
+        "name": "退会済みで加入日が未来チェック",
+        "user_message": "退会中で加入日が未来の日付になっている場合NG",
+        "severity": "エラー",
+        "description": "既に退会済みであるにもかかわらず、加入日が現在日付より未来になっている場合に検出されます。"
+    },
+    "CLOUD_CHK_0019": {
+        "series": "CLOUD",
+        "name": "加入中で契約満了日が空白チェック",
+        "user_message": "加入中で満了日が空白になっている場合NG",
+        "severity": "エラー",
+        "description": "現在加入中であるにもかかわらず、契約満了日が空白である場合に検出されます。"
+    },
+    "CLOUD_CHK_0020": {
+        "series": "CLOUD",
+        "name": "加入中で契約開始日が空白チェック",
+        "user_message": "加入中で開始日が空白になっている場合NG",
+        "severity": "エラー",
+        "description": "現在加入中であるにもかかわらず、契約開始日が空白である場合に検出されます。"
+    },
+    "CLOUD_CHK_0021": {
+        "series": "CLOUD",
+        "name": "備考欄が空白でない場合の確認",
+        "user_message": "備考（NotesForUpdate、NotesForETC）が空白でない場合はチェックが必要です。",
+        "severity": "警告",
+        "description": "NotesForUpdate（更新案内に関する備考）またはNotesForETC（その他の備考）のいずれかが空白でない場合に検出されます。これは手動での確認が必要な項目です。"
+    },
+    "CLOUD_CHK_0022": {
+        "series": "CLOUD",
+        "name": "備考欄に「減らして更新」キーワードチェック",
+        "user_message": "減らして更新のキーワードが残っている場合NG",
+        "severity": "エラー",
+        "description": "NotesForUpdate（更新案内に関する備考）またはNotesForETC（その他の備考）に「減らして更新」というキーワードが残っている場合に検出されます。これは処理済みであるべき情報です。"
+    },
+    "CLOUD_CHK_0023": {
+        "series": "CLOUD",
+        "name": "データバンク契約期間内チェック",
+        "user_message": "データバンクの契約期間内に収まっていない場合はNG",
+        "severity": "エラー",
+        "description": "データバンクの契約開始日と契約満了日が適切に設定され、有効な契約期間内であるかを確認します。期間が不正な場合に検出されます。"
+    }
+}
