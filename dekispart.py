@@ -268,7 +268,8 @@ def check_0014(row, errors_list):
     """
     DEKISPART_CHK_0014: stdNamCode(商魂コード)が空白ではないこと
     """
-    if str(row["stdNamCode"]).strip() == "":
+    # pd.isna() を使用して、NaN, None, および空文字列をより堅牢にチェック
+    if pd.isna(row["stdNamCode"]) or str(row["stdNamCode"]).strip() == "":
         _add_error_message(errors_list, row["stdUserID"], "DEKISPART_CHK_0014", row.get("stdID", ""))
 
 def check_0015(row, errors_list):
