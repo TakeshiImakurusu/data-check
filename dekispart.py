@@ -252,7 +252,11 @@ def check_0013(row, errors_list):
     """
     DEKISPART_CHK_0013: stdNamCode(商魂コード)は半角6桁かつ数字もしくは数字以外ではアルファベット半角Bから始まる
     """
-    std_nam_code = str(row["stdNamCode"])
+    std_nam_code = str(row["stdNamCode"]).strip() # Add .strip() for robustness
+
+    if not std_nam_code: # Skip if blank
+        return
+
     is_digit = std_nam_code.isdigit()
 
     if len(std_nam_code) != 6:
