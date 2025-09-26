@@ -403,14 +403,6 @@ def check_innosite_0014(row, errors_list):
     """INNOSITE_CHK_0014: stdSale1が000759の場合、stdNsyuが211でないとNG"""
     _check_sale1_nsyu_211(row, errors_list, "000759", "INNOSITE_CHK_0014")
 
-def check_innosite_0015(row, errors_list):
-    """INNOSITE_CHK_0015: stdikaiyakuがFalseかつstdiacyearが2以上の場合、stdibiko1に「複数年」が含まれていないとNG"""
-    if not row.get("stdikaiyaku", False):
-        stdiacyear = int(row.get("stdiacyear", 0)) # デフォルト値を設定
-        stdibiko1 = str(row.get("stdibiko1", "")).strip()
-        if stdiacyear >= 2 and "複数年" not in stdibiko1:
-            _add_error_message(errors_list, row["stdiinnoid"], "INNOSITE_CHK_0015", row.get("stdid_i", ""))
-
 def check_innosite_0016(row, errors_list):
     """INNOSITE_CHK_0016: stdibiko1、stdibiko2に「補助金」を含む場合はNG（退会ユーザーのみ）"""
     if row.get("stdikaiyaku", False):
@@ -907,7 +899,6 @@ def validate_data(df, progress_callback, totalnet_list, sales_person_list):
         check_innosite_0012,
         check_innosite_0013,
         check_innosite_0014,
-        check_innosite_0015,
         check_innosite_0016,
         check_innosite_0017,
         # CHK_0018, CHK_0019 はコメントアウトされているため含めません
