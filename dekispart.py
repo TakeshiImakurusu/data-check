@@ -10,7 +10,7 @@ import os
 import traceback
 import logging
 import configparser
-from dekispart_school import fetch_data_from_db, get_salKName2K_from_salCode
+from dekispart_school import fetch_data_from_db
 
 
 
@@ -712,6 +712,22 @@ def check_0040(row, errors_list):
         person_name = sales_person_dict[std_tsel_code]
         if row["stdKaiyaku"] == False and (person_name.startswith("×") or person_name.startswith("・")):
             _add_error_message(errors_list, row["stdUserID"], "DEKISPART_CHK_0040", row.get("stdID", ""))
+
+def get_salKName2K_from_salCode(sal_code: str) -> str | None:
+    """
+    salCodeを元にt_salmst_kからsalKName2Kを取得する汎用関数。
+    """
+    if not sal_code:
+        return None
+    query = f"SELECT salKName2K FROM t_salmst_k WHERE salCode = '{sal_code}'"
+    try:
+        df = fetch_data_from_db("KSMAIN_MYSQL", query)
+        if not df.empty:
+            return str(df.iloc[0]['salKName2K']).strip()
+        return None
+    except Exception as e:
+        logging.error(f"Error fetching salKName2K for salCode '{sal_code}': {e}")
+        return None
 
 def check_0041(row, errors_list):
     """
