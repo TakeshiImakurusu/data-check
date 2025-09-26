@@ -452,6 +452,40 @@ def check_innosite_0023(row, errors_list):
             except (ValueError, TypeError):
                 _add_error_message(errors_list, row["stdiinnoid"], "INNOSITE_CHK_0023_DATE_ERROR", row.get("stdid_i", ""))
 
+def check_innosite_0024(row, errors_list):
+    """
+    INNOSITE_CHK_0024: stdikaiyakuがfalseの場合、会員期間開始日(stdiReyear2)は、加入日(stdiAcday)の翌月から始まっているかチェック
+    """
+    if not row.get("stdikaiyaku", False):
+        stdiacday_str = str(row.get("stdiacday", "")).strip()
+        stdireyear2_str = str(row.get("stdireyear2", "")).strip()
+
+        if not stdiacday_str or not stdireyear2_str:
+            # 日付が空白の場合はチェックをスキップ、またはエラーとするか要検討
+            # 今回はスキップする
+            return
+
+        try:
+            # 加入日をパース
+            stdiacday_date = datetime.strptime(stdiacday_str, "%Y-%m-%d").date()
+            # 会員期間開始日をパース
+            stdireyear2_date = datetime.strptime(stdireyear2_str, "%Y-%m-%d").date()
+
+            # 加入日の翌月1日を計算
+            # 加入日の月を1ヶ月進める
+            if stdiacday_date.month == 12:
+                expected_start_date = stdiacday_date.replace(year=stdiacday_date.year + 1, month=1, day=1)
+            else:
+                expected_start_date = stdiacday_date.replace(month=stdiacday_date.month + 1, day=1)
+
+            # 会員期間開始日が期待される日付と一致しない場合NG
+            if stdireyear2_date != expected_start_date:
+                _add_error_message(errors_list, row["stdiinnoid"], "INNOSITE_CHK_0024", row.get("stdid_i", ""))
+
+        except (ValueError, TypeError):
+            # 日付形式が不正な場合
+            _add_error_message(errors_list, row["stdiinnoid"], "INNOSITE_CHK_0024_DATE_ERROR", row.get("stdid_i", ""))
+
 # CHK_0024 は元のコードでロジックが空白のため、ここでは含めません。
 
 def check_innosite_0025(row, errors_list):
@@ -845,7 +879,7 @@ def validate_data(df, progress_callback, totalnet_list, sales_person_list):
         lambda row, errors: check_deposit_route_totalnet_for_ng(row, totalnet_list, errors), # totalnet_listを渡す
         check_innosite_0022,
         check_innosite_0023,
-        # CHK_0024 はロジックが空白のため含めません
+        check_innosite_0024,
         check_innosite_0025,
         check_innosite_0026,
         check_innosite_0027,
