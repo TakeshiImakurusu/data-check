@@ -192,6 +192,17 @@ def get_maintenance_id_salses_representative_map():
         hosyu_data_map[str(row_hosyu["stdID"]).strip()] = str(row_hosyu["stdTselNo"]).strip()
         return hosyu_data_map
 
+def get_maintenance_id_sale1_map():
+    """
+    保守DBから整理番号(stdID)と販店1マスタ(stdSale1)のマップを取得します。
+    キーはstdID、値は整形済みのstdSale1です。
+    """
+    hosyu_data_map = {}
+    # fetch_hosyu_dataの結果がDataFrameであることを前提としています。
+    for index, row_hosyu in fetch_hosyu_data().iterrows():
+        hosyu_data_map[str(row_hosyu["stdID"]).strip()] = str(row_hosyu["stdSale1"]).strip()
+    return hosyu_data_map
+
 # 担当者マスタ（商魂）を読み込む
 def load_sales_person_list_from_csv(file_path=None):
     if not file_path or not os.path.exists(file_path):
@@ -826,6 +837,19 @@ def check_innosite_0039(row, errors_list, maintenance_id_sales_representative_ma
             if innosite_sales_rep_code == dekisu_sales_rep_code:
                 _add_error_message(errors_list, row["stdiinnoid"], "INNOSITE_CHK_0039", row.get("stdid_i", ""))
 
+def check_innosite_0040(row, errors_list, maintenance_id_sale1_map):
+    """
+    INNOSITE_CHK_0040: 販店1マスタがデキス保守とINNOSiTE保守と一致している場合NG
+    """
+    if not row.get("stdikaiyaku", False):
+        innosite_maintenance_id = str(row.get("stdid_i", "")).strip()
+        innosite_sale1 = str(row.get("stdisale1", "")).strip()
+
+        if innosite_maintenance_id and innosite_maintenance_id in maintenance_id_sale1_map:
+            dekisu_sale1 = maintenance_id_sale1_map[innosite_maintenance_id]
+            if innosite_sale1 == dekisu_sale1:
+                _add_error_message(errors_list, row["stdiinnoid"], "INNOSITE_CHK_0040", row.get("stdid_i", ""))
+
 # --- メインのバリデーション実行関数 ---
 def validate_data(df, progress_callback, totalnet_list, sales_person_list):
     """
@@ -849,6 +873,7 @@ def validate_data(df, progress_callback, totalnet_list, sales_person_list):
     bankrupt_shop_data = fetch_bankrupt_shop_data()["maiCode"].tolist()
     maintenance_id_address_map = get_maintenance_id_address_map()
     maintenance_id_sales_representative_map = get_maintenance_id_salses_representative_map() # 未使用の可能性？
+    maintenance_id_sale1_map = get_maintenance_id_sale1_map()
     sales_person_list = load_sales_person_list_from_csv()
     sales_person_dict = {
         str(person["担当者コード"]): person["担当者名"]
@@ -902,6 +927,7 @@ def validate_data(df, progress_callback, totalnet_list, sales_person_list):
         lambda row, errors: check_innosite_0033(row, errors, sales_person_dict), # sales_person_dictを渡す
         lambda row, errors: check_innosite_0034(row, errors, sales_master_dict), # sales_master_dictを渡す
         lambda row, errors: check_innosite_0039(row, errors, maintenance_id_sales_representative_map), # maintenance_id_sales_representative_mapを渡す
+        lambda row, errors: check_innosite_0040(row, errors, maintenance_id_sale1_map), # maintenance_id_sale1_mapを渡す
     ]
 
     for index, row in df.iterrows():
