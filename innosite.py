@@ -484,9 +484,7 @@ def check_innosite_0024(row, errors_list):
 
         except (ValueError, TypeError):
             # 日付形式が不正な場合
-            _add_error_message(errors_list, row["stdiinnoid"], "INNOSITE_CHK_0024_DATE_ERROR", row.get("stdid_i", ""))
-
-# CHK_0024 は元のコードでロジックが空白のため、ここでは含めません。
+            _add_error_message(errors_list, row["stdiinnoid"], "INNOSITE_CHK_0024", row.get("stdid_i", ""))
 
 def check_innosite_0025(row, errors_list):
     """INNOSITE_CHK_0025: stdikaiyakuがtrueの場合、stdiacdayが未来の日付になっていたらNG。ただし、stdibiko2に退会の文字があればOKとする"""
@@ -815,6 +813,19 @@ def check_innosite_0038(row, errors_list, sales_master_dict):
     # 共通条件が満たされた時点でNG
     _add_error_message(errors_list, row.get("stdiinnoid"), "INNOSITE_CHK_0038", row.get("stdid_i", ""))
 
+def check_innosite_0039(row, errors_list, maintenance_id_sales_representative_map):
+    """
+    INNOSITE_CHK_0039: 営業担当コードがデキス保守とINNOSiTE保守と一致している場合NG
+    """
+    if not row.get("stdikaiyaku", False): # Add this condition
+        innosite_maintenance_id = str(row.get("stdid_i", "")).strip()
+        innosite_sales_rep_code = str(row.get("stditselno", "")).strip()
+
+        if innosite_maintenance_id and innosite_maintenance_id in maintenance_id_sales_representative_map:
+            dekisu_sales_rep_code = maintenance_id_sales_representative_map[innosite_maintenance_id]
+            if innosite_sales_rep_code == dekisu_sales_rep_code:
+                _add_error_message(errors_list, row["stdiinnoid"], "INNOSITE_CHK_0039", row.get("stdid_i", ""))
+
 # --- メインのバリデーション実行関数 ---
 def validate_data(df, progress_callback, totalnet_list, sales_person_list):
     """
@@ -890,6 +901,7 @@ def validate_data(df, progress_callback, totalnet_list, sales_person_list):
         # CHK_0032 はコメントアウトされているため含めません
         lambda row, errors: check_innosite_0033(row, errors, sales_person_dict), # sales_person_dictを渡す
         lambda row, errors: check_innosite_0034(row, errors, sales_master_dict), # sales_master_dictを渡す
+        lambda row, errors: check_innosite_0039(row, errors, maintenance_id_sales_representative_map), # maintenance_id_sales_representative_mapを渡す
     ]
 
     for index, row in df.iterrows():
