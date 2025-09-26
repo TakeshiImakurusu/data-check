@@ -185,10 +185,13 @@ def check_0004(row, errors_list):
 
 def check_0005(row, errors_list):
     """
-    DEKISPART_CHK_0005: stdUserIDの先頭8桁が半角であること
+    DEKISPART_CHK_0005: stdUserIDの桁数が8桁ではないこと
     """
-    user_id = str(row["stdUserID"])
-    if len(user_id) >= 8 and not user_id[:8].isalnum():
+    user_id = str(row["stdUserID"]).strip()
+    if not user_id: # Skip if blank
+        return
+
+    if len(user_id) != 8:
         _add_error_message(errors_list, row["stdUserID"], "DEKISPART_CHK_0005", row.get("stdID", ""))
 
 def check_0006(row, errors_list):
@@ -200,11 +203,17 @@ def check_0006(row, errors_list):
 
 def check_0007(row, errors_list):
     """
-    DEKISPART_CHK_0007: stdUserIDの桁数が半角1～7桁であり、かつ"9", "13", "15"ではないこと
+    DEKISPART_CHK_0007: stdUserIDの桁数が1～7桁、9桁、13桁、15桁のいずれかである場合NG
     """
-    if row["stdUserID"] and len(row["stdUserID"]) >= 1 and len(row["stdUserID"]) <= 7 and row["stdUserID"].isdigit():
-        if row["stdUserID"] not in ["9", "13", "15"]:
-            _add_error_message(errors_list, row["stdUserID"], "DEKISPART_CHK_0007", row.get("stdID", ""))
+    user_id = str(row["stdUserID"]).strip()
+    if not user_id: # Skip if blank
+        return
+
+    user_id_len = len(user_id)
+    ng_lengths = [1, 2, 3, 4, 5, 6, 7, 9, 13, 15]
+
+    if user_id_len in ng_lengths:
+        _add_error_message(errors_list, row["stdUserID"], "DEKISPART_CHK_0007", row.get("stdID", ""))
 
 def check_0008(row, errors_list, user_id_list):
     """
@@ -1219,11 +1228,12 @@ def run_dekispart_check(progress_callback=None, aux_paths=None):
             "エラー内容": f"処理中にエラーが発生しました: {e}"
         }], columns=["シリーズ", "ユーザID", "エラー内容"])
 
-# メイン処理
 def main():
     data = fetch_data()
     errors_df = validate_data(data)
     save_to_excel(errors_df)
+
+    print("\n--- Test DEKISPART_CHK_0005 and CHK_0007 Complete ---")
 
 if __name__ == "__main__":
     main()
