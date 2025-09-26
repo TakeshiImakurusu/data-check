@@ -304,33 +304,6 @@ def validate_data(df, progress_callback):
                 "KSARStoreCode", "CLOUD_CHK_0008"
             )
 
-        # CHK_0009: データバンクで複数年の場合に記載がない場合はNG
-        check_multiple_years_contract(row, "DB_ContractEnd", "DB_CancellationDate", "DB_ContractStart", "DB_NotesForMultipleYears", error_messages, "CLOUD_CHK_0009")
-        # CHK_0009: サイトボックスで複数年の場合に記載がない場合はNG
-        check_multiple_years_contract(row, "SB_ContractEnd", "SB_CancellationDate", "SB_ContractStart", "SB_NotesForMultipleYears", error_messages, "CLOUD_CHK_0009")
-        # CHK_0009: フィールドネットで複数年の場合に記載がない場合はNG
-        check_multiple_years_contract(row, "FN_ContractEnd", "FN_CancellationDate", "FN_ContractStart", "FN_NotesForMultipleYears", error_messages, "CLOUD_CHK_0009")
-        # CHK_0009: サイトボックストンネルで複数年の場合に記載がない場合はNG
-        check_multiple_years_contract(row, "SBT_ContractEnd", "SBT_CancellationDate", "SBT_ContractStart", "SBT_NotesForMultipleYears", error_messages, "CLOUD_CHK_0009")
-        # CHK_0009: 写管屋クラウドで複数年の場合に記載がない場合はNG
-        check_multiple_years_contract(row, "DBP_ContractEnd", "DBP_CancellationDate", "DBP_ContractStart", "DBP_NotesForMultipleYears", error_messages, "CLOUD_CHK_0009")
-        # CHK_0009: 配筋検査で複数年の場合に記載がない場合はNG
-        check_multiple_years_contract(row, "SBR_ContractEnd", "SBR_CancellationDate", "SBR_ContractStart", "SBR_NotesForMultipleYears", error_messages, "CLOUD_CHK_0009")
-        # CHK_0009: KENTEM-CONNECTで複数年の場合に記載がない場合はNG
-        check_multiple_years_contract(row, "KC_ContractEnd", "KC_CancellationDate", "KC_ContractStart", "KC_NotesForMultipleYears", error_messages, "CLOUD_CHK_0009")
-        # CHK_0009: 出来形管理クラウドで複数年の場合に記載がない場合はNG
-        check_multiple_years_contract(row, "DQC_ContractEnd", "DQC_CancellationDate", "DQC_ContractStart", "DQC_NotesForMultipleYears", error_messages, "CLOUD_CHK_0009")
-        # CHK_0009: 快測Scanで複数年の場合に記載がない場合はNG
-        check_multiple_years_contract(row, "KSSCAN_ContractEnd", "KSSCAN_CancellationDate", "KSSCAN_ContractStart", "KSSCAN_NotesForMultipleYears", error_messages, "CLOUD_CHK_0009")
-        # CHK_0009: 日報管理クラウドで複数年の場合に記載がない場合はNG
-        check_multiple_years_contract(row, "PMC_ContractEnd", "PMC_CancellationDate", "PMC_ContractStart", "PMC_NotesForMultipleYears", error_messages, "CLOUD_CHK_0009")
-        # CHK_0009: 品質管理クラウドで複数年の場合に記載がない場合はNG
-        check_multiple_years_contract(row, "CQC_ContractEnd", "CQC_CancellationDate", "CQC_ContractStart", "CQC_NotesForMultipleYears", error_messages, "CLOUD_CHK_0009")
-        # CHK_0009: 施工体制クラウドで複数年の場合に記載がない場合はNG
-        check_multiple_years_contract(row, "WLC_ContractEnd", "WLC_CancellationDate", "WLC_ContractStart", "WLC_NotesForMultipleYears", error_messages, "CLOUD_CHK_0009")
-        # CHK_0009: KENTEM-ToDoで複数年の場合に記載がない場合はNG
-        check_multiple_years_contract(row, "KTD_ContractEnd", "KTD_CancellationDate", "KTD_ContractStart", "KTD_NotesForMultipleYears", error_messages, "CLOUD_CHK_0009")
-        # CHK_0009:快測AR
         # CHK_0009:工事実績DBクラウド
 
         # CHK_0010 備考(NotesForRTC)に補助金の記載がある場合に日付が過去になっているとNG
@@ -649,19 +622,6 @@ def is_any_contract_active(row):
     return any(not row[field] for field in contract_fields)
 
 # 複数年チェック
-def check_multiple_years_contract(row, contract_end_field, cancellation_date_field, contract_start_field, notes_field, error_messages, chk_code):
-    if pd.notna(row[contract_end_field]) and pd.isna(row[cancellation_date_field]):
-        contract_duration = row[contract_end_field] - row[contract_start_field]
-        if contract_duration.days >= 2 * 365:  # 2年以上
-            if "複数年" not in (row.get(notes_field) or ""):
-                error_messages.append({
-                    "シリーズ": "CLOUD",
-                    "ユーザID": row["ManagementCode"],
-                    "保守整理番号": row.get("HoshuId", ""),  # 保守整理番号を追加
-                    "チェックID": chk_code
-                })
-
-# CHK_0010: NotesForRTCに補助金という記載が含まれる場合に記載内容に含む日付が過去の日付になっていたらNG
 def check_subsidy_date(row, error_messages):
     if "補助金" in (row.get("NotesForRTC") or ""):
         # 日付のパターンを正規表現で検索
