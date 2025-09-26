@@ -392,6 +392,15 @@ def check_0038(row, errors_list):
             if str(row["stdHassouType"]) != "0":
                 _add_error_message(errors_list, row["stdUserID"], "DEKISPART_CHK_0038", row.get("stdID", ""))
 
+def check_0039(row, errors_list):
+    """
+    DEKISPART_CHK_0039: 加入中に限り、備考に「更新案内不要」が入っている場合、更新案内フラグは不要でなくてはならない
+    """
+    if row["stdKaiyaku"] == False:
+        if "更新案内不要" in str(row["stdKbiko"]):
+            if str(row["stdHassouType"]) != "0":
+                _add_error_message(errors_list, row["stdUserID"], "DEKISPART_CHK_0039", row.get("stdID", ""))
+
 def check_0029(row, errors_list):
     """
     DEKISPART_CHK_0029: stdFlg3がTRUEになっている場合NG
@@ -658,7 +667,7 @@ def check_0037(row, errors_list):
 #     if is_ng_payment_shipping_pattern:
 #         _add_error_message(errors_list, row.get("stdUserID"), "DEKISPART_CHK_0038", row.get("stdID", ""))
 
-def check_0039(row, errors_list, sales_master_list):
+def check_0039_sales_master_related(row, errors_list, sales_master_list):
     """
     DEKISPART_CHK_0039: 以下の共通条件とNGパターンが満たされる場合NG
     共通条件:
@@ -977,7 +986,7 @@ def validate_data(df, progress_callback, individual_list, totalnet_list, sales_p
         check_0016, check_0017, check_0018, check_0019, check_0020,
         check_0021, check_0022, check_0023, check_0024, check_0025,
         check_0026, check_0027, check_0029, check_0030,
-        check_0031, check_0037, check_0038,
+        check_0031, check_0037, check_0038, check_0039,
         check_0040, check_0041, check_0042, check_0043,
         check_0044, check_0045, check_0046, check_0047, check_0048,
         check_0049, check_0050, check_0051, check_0052, check_0053,
@@ -992,7 +1001,7 @@ def validate_data(df, progress_callback, individual_list, totalnet_list, sales_p
         lambda row, errors: check_0034(row, errors, sales_master_dict),
         lambda row, errors: check_0035(row, errors, sales_master_dict),
         lambda row, errors: check_0036(row, errors, sales_master_dict),
-        lambda row, errors: check_0039(row, errors, sales_master_dict),
+        lambda row, errors: check_0038_sales_master_related(row, errors, sales_master_dict),
         lambda row, errors: check_0059(row, errors, customers_list),
         check_0060,
     ]
@@ -1232,8 +1241,6 @@ def main():
     data = fetch_data()
     errors_df = validate_data(data)
     save_to_excel(errors_df)
-
-    print("\n--- Test DEKISPART_CHK_0005 and CHK_0007 Complete ---")
 
 if __name__ == "__main__":
     main()
