@@ -369,14 +369,6 @@ def check_0027(row, errors_list):
         if row["stdKaiyaku"] is False and (customer_name1 and any(customer_name1.startswith(symbol) for symbol in forbidden_leading_symbols)):
             _add_error_message(errors_list, row["stdUserID"], "DEKISPART_CHK_0027", row.get("stdID", ""))
 
-def check_0028(row, errors_list):
-    """
-    DEKISPART_CHK_0028: stdKaiyakuがFALSE かつ stdAcyear(加入年数)が1以外の場合、
-                       stdSbikoが空白ではなく"年"が含まれていない場合NG
-    """
-    if row["stdSbiko"] and str(row["stdSbiko"]).strip() != "" and "年" not in str(row["stdSbiko"]):
-        _add_error_message(errors_list, row["stdUserID"], "DEKISPART_CHK_0028", row.get("stdID", ""))
-
 def check_0029(row, errors_list):
     """
     DEKISPART_CHK_0029: stdFlg3がTRUEになっている場合NG
@@ -961,7 +953,7 @@ def validate_data(df, progress_callback, individual_list, totalnet_list, sales_p
         check_0011, check_0012, check_0013, check_0014, check_0015,
         check_0016, check_0017, check_0018, check_0019, check_0020,
         check_0021, check_0022, check_0023, check_0024, check_0025,
-        check_0026, check_0027, check_0028, check_0029, check_0030,
+        check_0026, check_0027, check_0029, check_0030,
         check_0031, check_0037,
         check_0040, check_0041, check_0042, check_0043,
         check_0044, check_0045, check_0046, check_0047, check_0048,
