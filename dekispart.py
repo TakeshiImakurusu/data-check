@@ -10,6 +10,7 @@ import os
 import traceback
 import logging
 import configparser
+from dekispart_school import fetch_data_from_db
 
 
 
@@ -728,25 +729,28 @@ def check_0042(row, errors_list):
 
 def check_0043(row, errors_list):
     """
-    DEKISPART_CHK_0043: stdKaiyakuがFALSEかつstdTplaに指定の営業所名以外がある場合NG
-    担当者マスターから有効な営業所名を取得して検証する
+    DEKISPART_CHK_0043: stdKaiyakuがFALSEの時、stdTpla（営業所名）が
+    KSMAIN_MYSQL.ksmainのt_salmst_kのsalCodeで取得できる所属名（salKName2K）と
+    一致していれば OK、一致しないものを NG とするチェックに変更
     """
-    # 担当者マスタリストを取得する
-    sales_person_list = load_sales_person_list_from_csv()
-    
-    # 部門コードから営業所名のセットを作成
-    valid_branches = set()
-    for person in sales_person_list:
-        if "部門コード" in person and person["部門コード"]:
-            valid_branches.add(str(person["部門コード"]))
-    
-    # 有効な営業所名が取得できなかった場合のフォールバック
-    if not valid_branches:
-        logging.warning("担当者マスターから営業所名を取得できませんでした。デフォルト値を使用します。")
-        valid_branches = {"九州", "仙台", "会社", "北陸", "南九州", "名古屋", "四国", "大手", "広島", "建築", "新潟", "本社", "本社第1", "本社第2", "札幌", "盛岡", "福岡", "関東", "関西"}
-    
-    if row["stdKaiyaku"] == False and row["stdTpla"] not in valid_branches:
-        _add_error_message(errors_list, row["stdUserID"], "DEKISPART_CHK_0043", row.get("stdID", ""))
+    if row["stdKaiyaku"] == False:
+        stdTpla_value = str(row["stdTpla"]).strip()
+        if not stdTpla_value: # stdTplaが空の場合はチェックをスキップ
+            return
+
+        query = f"SELECT salKName2K FROM t_salmst_k WHERE salCode = '{stdTpla_value}'"
+        try:
+            df_salmst_k = fetch_data_from_db("KSMAIN_MYSQL", query)
+            if not df_salmst_k.empty:
+                salKName2K = str(df_salmst_k.iloc[0]['salKName2K']).strip()
+                if stdTpla_value != salKName2K:
+                    _add_error_message(errors_list, row["stdUserID"], "DEKISPART_CHK_0043", row.get("stdID", ""))
+            else:
+                # salCodeに一致するデータがない場合もNGとする
+                _add_error_message(errors_list, row["stdUserID"], "DEKISPART_CHK_0043", row.get("stdID", ""))
+        except Exception as e:
+            logging.error(f"Error fetching salKName2K for stdTpla '{stdTpla_value}': {e}")
+            _add_error_message(errors_list, row["stdUserID"], "DEKISPART_CHK_0043_DB_ERROR", row.get("stdID", ""))
 
 def check_0044(row, errors_list):
     """
