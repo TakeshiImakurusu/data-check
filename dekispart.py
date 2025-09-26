@@ -374,6 +374,15 @@ def check_0027(row, errors_list):
         if row["stdKaiyaku"] is False and (customer_name1 and any(customer_name1.startswith(symbol) for symbol in forbidden_leading_symbols)):
             _add_error_message(errors_list, row["stdUserID"], "DEKISPART_CHK_0027", row.get("stdID", ""))
 
+def check_0038(row, errors_list):
+    """
+    DEKISPART_CHK_0038: 加入中に限り、更新案内不要販売店登録がある場合、更新案内フラグは不要でなくてはならない
+    """
+    if row["stdKaiyaku"] == False:
+        if "更新案内不要" in str(row["stdKbiko"]):
+            if str(row["stdHassouType"]) != "0":
+                _add_error_message(errors_list, row["stdUserID"], "DEKISPART_CHK_0038", row.get("stdID", ""))
+
 def check_0029(row, errors_list):
     """
     DEKISPART_CHK_0029: stdFlg3がTRUEになっている場合NG
@@ -585,60 +594,60 @@ def check_0037(row, errors_list):
     if row["stdKaiyaku"] == False and row["stdNonRenewal"] == True:
         _add_error_message(errors_list, row["stdUserID"], "DEKISPART_CHK_0037", row.get("stdID", ""))
 
-def check_0038(row, errors_list, sales_master_dict):
-    """
-    DEKISPART_CHK_0038: 以下の共通条件が満たされ、かつ、指定された支払い・発送方法のいずれかのパターンに合致する場合NG
-    共通条件:
-      - stdKaiyaku が FALSE
-      - stdKbiko に「更新案内不要」という文字が含まれていない
-      - salNotifyRenewal が TRUE
-    NGパターン:
-      - (stdNsyu=121 かつ stdHassouType=1)
-      - (stdNsyu=121 かつ stdHassouType=2)
-      - (stdNsyu=122 かつ stdHassouType=1)
-      - (stdNsyu=122 かつ stdHassouType=2) 
-      - (stdNsyu=211 かつ stdHassouType=1)
-      - (stdNsyu=211 かつ stdHassouType=2)
-    """
-    # 条件をまとめるための変数
-    is_not_cancelled = row.get("stdKaiyaku") is False
-    # stdKbiko が存在しない場合も「含まれていない」とみなす
-    is_kbiko_not_containing_renewal_text = not (row.get("stdKbiko") and "更新案内不要" in row["stdKbiko"])
-    # salJifuriDM の取得方法を変更: stdSale1 をキーとして sales_master_dict から取得
-    is_sal_notify_renewal_true_from_master = False
-    std_sale1 = row.get("stdSale1")
-    if std_sale1 in sales_master_dict:
-        # sales_master_dict の値が辞書形式であることを想定し、.get() でアクセス
-        if sales_master_dict[std_sale1].get("salNotifyRenewal") is True:
-            is_sal_notify_renewal_true_from_master = True
+# def check_0038_sales_master_related(row, errors_list, sales_master_dict):
+#     # """
+#     # DEKISPART_CHK_0038: 以下の共通条件が満たされ、かつ、指定された支払い・発送方法のいずれかのパターンに合致する場合NG
+#     # 共通条件:
+#     #   - stdKaiyaku が FALSE
+#       - stdKbiko に「更新案内不要」という文字が含まれていない
+#       - salNotifyRenewal が TRUE
+#     NGパターン:
+#       - (stdNsyu=121 かつ stdHassouType=1)
+#       - (stdNsyu=121 かつ stdHassouType=2)
+#       - (stdNsyu=122 かつ stdHassouType=1)
+#       - (stdNsyu=122 かつ stdHassouType=2) 
+#       - (stdNsyu=211 かつ stdHassouType=1)
+#       - (stdNsyu=211 かつ stdHassouType=2)
+#     """
+#     # 条件をまとめるための変数
+#     is_not_cancelled = row.get("stdKaiyaku") is False
+#     # stdKbiko が存在しない場合も「含まれていない」とみなす
+#     is_kbiko_not_containing_renewal_text = not (row.get("stdKbiko") and "更新案内不要" in row["stdKbiko"])
+#     # salJifuriDM の取得方法を変更: stdSale1 をキーとして sales_master_dict から取得
+#     is_sal_notify_renewal_true_from_master = False
+#     std_sale1 = row.get("stdSale1")
+#     if std_sale1 in sales_master_dict:
+#         # sales_master_dict の値が辞書形式であることを想定し、.get() でアクセス
+#         if sales_master_dict[std_sale1].get("salNotifyRenewal") is True:
+#             is_sal_notify_renewal_true_from_master = True
 
-    # 全ての共通条件が満たされているか
-    common_conditions_met = is_not_cancelled and is_kbiko_not_containing_renewal_text and is_sal_notify_renewal_true_from_master
+#     # 全ての共通条件が満たされているか
+#     common_conditions_met = is_not_cancelled and is_kbiko_not_containing_renewal_text and is_sal_notify_renewal_true_from_master
 
-    if not common_conditions_met:
-        # 共通条件が満たされていない場合は、NGではないのでここで終了
-        return
+#     if not common_conditions_met:
+#         # 共通条件が満たされていない場合は、NGではないのでここで終了
+#         return
 
-    # 支払い・発送方法のパターンチェック
-    std_nsyu = row.get("stdNsyu")
-    std_hassou_type = row.get("stdHassouType")
+#     # 支払い・発送方法のパターンチェック
+#     std_nsyu = row.get("stdNsyu")
+#     std_hassou_type = row.get("stdHassouType")
 
-    # NGとなる支払い・発送方法の組み合わせを定義
-    ng_patterns = [
-        (121, 1),
-        (121, 2),
-        (122, 1),
-        (122, 2),
-        (211, 1),
-        (211, 2)
-    ]
+#     # NGとなる支払い・発送方法の組み合わせを定義
+#     ng_patterns = [
+#         (121, 1),
+#         (121, 2),
+#         (122, 1),
+#         (122, 2),
+#         (211, 1),
+#         (211, 2)
+#     ]
 
-    # 現在の行の支払い・発送方法がNGパターンに合致するかチェック
-    is_ng_payment_shipping_pattern = (std_nsyu, std_hassou_type) in ng_patterns
+#     # 現在の行の支払い・発送方法がNGパターンに合致するかチェック
+#     is_ng_payment_shipping_pattern = (std_nsyu, std_hassou_type) in ng_patterns
 
-    # 共通条件とNGパターンが両方満たされた場合にエラーを追加
-    if is_ng_payment_shipping_pattern:
-        _add_error_message(errors_list, row.get("stdUserID"), "DEKISPART_CHK_0038", row.get("stdID", ""))
+#     # 共通条件とNGパターンが両方満たされた場合にエラーを追加
+#     if is_ng_payment_shipping_pattern:
+#         _add_error_message(errors_list, row.get("stdUserID"), "DEKISPART_CHK_0038", row.get("stdID", ""))
 
 def check_0039(row, errors_list, sales_master_list):
     """
@@ -959,7 +968,7 @@ def validate_data(df, progress_callback, individual_list, totalnet_list, sales_p
         check_0016, check_0017, check_0018, check_0019, check_0020,
         check_0021, check_0022, check_0023, check_0024, check_0025,
         check_0026, check_0027, check_0029, check_0030,
-        check_0031, check_0037,
+        check_0031, check_0037, check_0038,
         check_0040, check_0041, check_0042, check_0043,
         check_0044, check_0045, check_0046, check_0047, check_0048,
         check_0049, check_0050, check_0051, check_0052, check_0053,
@@ -974,7 +983,6 @@ def validate_data(df, progress_callback, individual_list, totalnet_list, sales_p
         lambda row, errors: check_0034(row, errors, sales_master_dict),
         lambda row, errors: check_0035(row, errors, sales_master_dict),
         lambda row, errors: check_0036(row, errors, sales_master_dict),
-        lambda row, errors: check_0038(row, errors, sales_master_dict),
         lambda row, errors: check_0039(row, errors, sales_master_dict),
         lambda row, errors: check_0059(row, errors, customers_list),
         check_0060,
