@@ -7,24 +7,11 @@ import re
 import os
 import traceback
 from typing import Callable
+import configparser
 
 # --- 設定値 ---
 class Config:
-    # データベース接続設定
-    DB_CONFIG_KSMAIN2 = {
-        "host": "ks-db",
-        "database": "ksmain2",
-        "user": "root",
-        "password": "",
-        "charset": "sjis",
-    }
-    DB_CONFIG_KSMAIN = {
-        "host": "ks-db",
-        "database": "ksmain",
-        "user": "root",
-        "password": "",
-        "charset": "sjis",
-    }
+    # データベース接続設定はconfig.iniに移行しました
 
     # ファイルパス (デフォルト値。GUIで選択される場合は上書きされる)
     TOTALNET_LIST_DEFAULT_PATH = "totalnet_list.csv" # 仮のパス
@@ -82,12 +69,22 @@ def create_error_entry(user_id: str, check_id: str, maintenance_id: str = None) 
         "チェックID": check_id,
     }
 
-def fetch_data_from_db(db_config: dict, query: str) -> pd.DataFrame:
+def fetch_data_from_db(config_section: str, query: str) -> pd.DataFrame:
     """
     指定されたDB設定とクエリを使用してデータを取得し、DataFrameとして返す。
     """
     try:
-        with pymysql.connect(**db_config) as conn:
+        config = configparser.ConfigParser()
+        config.read('config.ini')
+        db_config = config[config_section]
+
+        with pymysql.connect(
+            host=db_config['host'],
+            database=db_config['database'],
+            user=db_config['user'],
+            password=db_config['password'],
+            charset=db_config['charset']
+        ) as conn:
             with conn.cursor() as cursor:
                 cursor.execute(query)
                 columns = [desc[0] for desc in cursor.description]
@@ -159,7 +156,7 @@ def load_excel_column_to_list(file_path: str, sheet_name: str, column_name: str,
 def fetch_innosite_data() -> pd.DataFrame:
     """INNOSiTEデータを取得する。"""
     query = "SELECT t_stdddata.* FROM t_stdddata ORDER BY payuserid ASC;"
-    return fetch_data_from_db(Config.DB_CONFIG_KSMAIN2, query)
+    return fetch_data_from_db("KSMAIN2_MYSQL", query)
 
 def fetch_excluded_sales_data() -> pd.DataFrame:
     """営業データを取得する。"""
@@ -168,7 +165,7 @@ def fetch_excluded_sales_data() -> pd.DataFrame:
         # 元のクエリ: "SELECT salCode, salKName FROM t_salmst_k WHERE salKName LIKE '%×%' OR salKName LIKE '%・%';"
         # 修正後: 条件を緩和し、すべての営業データを取得
         query = "SELECT salCode, salKName FROM t_salmst_k;"
-        df = fetch_data_from_db(Config.DB_CONFIG_KSMAIN, query)
+        df = fetch_data_from_db("KSMAIN_MYSQL", query)
         
         # 取得したデータから対象外営業を抽出（クライアント側でフィルタリング）
         if not df.empty:
@@ -188,7 +185,7 @@ def fetch_excluded_sales_data() -> pd.DataFrame:
 def fetch_bankrupt_shop_data() -> pd.DataFrame:
     """倒産している販売店データを取得する。"""
     query = "SELECT maiCode FROM t_stdmain_h WHERE maiName1 LIKE '%★%' OR maiName1 LIKE '%×%' OR maiName1 LIKE '%▲%';"
-    return fetch_data_from_db(Config.DB_CONFIG_KSMAIN, query)
+    return fetch_data_from_db("KSMAIN_MYSQL", query)
 
 # --- 補助データ読み込み関数 ---
 def load_totalnet_list(file_path: str | None) -> pd.DataFrame:

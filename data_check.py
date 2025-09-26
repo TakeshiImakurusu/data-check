@@ -1,3 +1,4 @@
+import importlib
 import tkinter as tk
 from tkinter import ttk, filedialog, messagebox
 import pandas as pd
@@ -9,13 +10,50 @@ import datetime
 
 # 各シリーズのチェックロジックをインポート
 # これらのモジュールは、main_checker_app.py と同じディレクトリに配置されている必要があります。
-try:
-    import dekispart
-    import innosite
-    import dekispart_school
-    import cloud
-except ImportError as e:
-    messagebox.showerror("モジュールエラー", f"必要なシリーズチェックモジュールが見つかりません。以下のファイルが同じディレクトリにあるか確認してください。\n{e}\n\nアプリケーションを終了します。")
+SERIES_MODULE_NAMES = ["dekispart", "innosite", "dekispart_school", "cloud"]
+missing_series_modules = []
+missing_dependencies = set()
+
+for module_name in SERIES_MODULE_NAMES:
+    try:
+        globals()[module_name] = importlib.import_module(module_name)
+    except ModuleNotFoundError as error:
+        # error.name は見つからなかったモジュール名を返す
+        if error.name == module_name:
+            missing_series_modules.append(module_name)
+        else:
+            missing_dependencies.add(error.name)
+    except ImportError as error:
+        messagebox.showerror(
+            "モジュールエラー",
+            (
+                f"シリーズチェックモジュール '{module_name}' の読み込み中にエラーが発生しました。\n"
+                f"{error}\n\nアプリケーションを終了します。"
+            ),
+        )
+        sys.exit(1)
+
+if missing_series_modules or missing_dependencies:
+    error_messages = []
+    if missing_series_modules:
+        file_list = "\n".join(f"  - {name}.py" for name in missing_series_modules)
+        error_messages.append(
+            "以下のシリーズチェックモジュールが見つかりません。"
+            "同じディレクトリに配置されているか確認してください:\n"
+            f"{file_list}"
+        )
+    if missing_dependencies:
+        dep_list = "\n".join(f"  - {name}" for name in sorted(missing_dependencies))
+        install_hint = " pip install " + " ".join(sorted(missing_dependencies))
+        error_messages.append(
+            "以下の外部ライブラリが見つかりません。仮想環境を有効化した上で"
+            f"{install_hint} を実行してください:\n{dep_list}"
+        )
+
+    messagebox.showerror(
+        "モジュールエラー",
+        "\n\n".join(error_messages) + "\n\nアプリケーションを終了します。",
+    )
     sys.exit(1)
 
 class DataCheckerApp:
@@ -33,6 +71,8 @@ class DataCheckerApp:
         self.style.theme_use("clam")
 
         self.aux_file_paths = {}
+        self.font_size = 10 # デフォルトフォントサイズ
+        self.theme = "default" # デフォルトテーマ
         self.settings_file = "app_settings.json"
         self.check_definitions_file = "check_definitions.json" # チェック定義ファイル名
         self.check_definitions = {} # チェック定義を格納する辞書
@@ -42,6 +82,7 @@ class DataCheckerApp:
         self.help_menu = None
 
         self.load_settings() 
+        self.update_font_and_theme_style() # フォントとテーマのスタイルを適用
         self.load_check_definitions() # チェック定義を読み込む
 
         # シリーズリストを動的に取得
@@ -61,7 +102,7 @@ class DataCheckerApp:
                 series_set.add(definition["series"])
         
         # アルファベット順にソートして返す
-        return list(series_set)
+        return sorted(list(series_set))
 
     def _create_menu_bar(self):
         menubar = tk.Menu(self.master)
@@ -70,24 +111,45 @@ class DataCheckerApp:
         # ファイルメニュー (念のため追加)
         file_menu = tk.Menu(menubar, tearoff=0)
         menubar.add_cascade(label="ファイル", menu=file_menu)
-        file_menu.add_command(label="設定を保存", command=self.save_settings)
+        file_menu.add_command(label="設定を保存", command=self.save_settings, accelerator="Ctrl+S")
         file_menu.add_separator()
         file_menu.add_command(label="終了", command=self.master.quit)
 
         # 設定メニュー
-        # self.settings_menu をインスタンス変数として保持
         self.settings_menu = tk.Menu(menubar, tearoff=0)
         menubar.add_cascade(label="設定", menu=self.settings_menu)
-        self.settings_menu.add_command(label="補助ファイル設定", command=self.open_file_settings)
-        self.settings_menu.add_command(label="チェック内容編集", command=self.open_check_definition_editor) # 新しいメニュー項目
+        self.settings_menu.add_command(label="補助ファイル設定", command=self.open_file_settings, accelerator="Ctrl+O")
+        self.settings_menu.add_command(label="チェック内容編集", command=self.open_check_definition_editor, accelerator="Ctrl+E")
+
+        # フォントサイズ変更メニュー
+        font_menu = tk.Menu(self.settings_menu, tearoff=0)
+        self.settings_menu.add_cascade(label="フォントサイズ", menu=font_menu)
+        self.font_size_var = tk.IntVar(value=self.font_size)
+        font_menu.add_radiobutton(label="小 (10pt)", variable=self.font_size_var, value=10, command=self.change_font_size)
+        font_menu.add_radiobutton(label="中 (12pt)", variable=self.font_size_var, value=12, command=self.change_font_size)
+        font_menu.add_radiobutton(label="大 (14pt)", variable=self.font_size_var, value=14, command=self.change_font_size)
+
+        # テーマ変更メニュー
+        theme_menu = tk.Menu(self.settings_menu, tearoff=0)
+        self.settings_menu.add_cascade(label="テーマ", menu=theme_menu)
+        self.theme_var = tk.StringVar(value=self.theme)
+        theme_menu.add_radiobutton(label="デフォルト", variable=self.theme_var, value="default", command=self.change_theme)
+        theme_menu.add_radiobutton(label="高コントラスト", variable=self.theme_var, value="high_contrast", command=self.change_theme)
+
 
         # ヘルプメニュー
-        # self.help_menu をインスタンス変数として保持
         self.help_menu = tk.Menu(menubar, tearoff=0)
         menubar.add_cascade(label="ヘルプ", menu=self.help_menu)
         self.help_menu.add_command(label="使い方", command=self.show_usage_info)
         self.help_menu.add_command(label="バージョン情報", command=self.show_version_info)
-        self.help_menu.add_command(label="チェック内容一覧", command=self.show_check_definition_viewer) # 新しいメニュー項目
+        self.help_menu.add_command(label="チェック内容一覧", command=self.show_check_definition_viewer)
+
+        # ショートカットキーのバインド
+        self.master.bind("<Control-s>", lambda event: self.save_settings())
+        self.master.bind("<Control-o>", lambda event: self.open_file_settings())
+        self.master.bind("<Control-e>", lambda event: self.open_check_definition_editor())
+        self.master.bind("<Control-d>", lambda event: self.download_results())
+        self.master.bind("<Control-l>", lambda event: self.clear_results())
 
 
     def _create_widgets(self):
@@ -234,26 +296,82 @@ class DataCheckerApp:
         self.progress_bar = ttk.Progressbar(self.status_frame, orient="horizontal", mode="indeterminate", length=200)
 
     def load_settings(self):
-        """設定ファイルから補助ファイルのパスを読み込む"""
+        """設定ファイルから補助ファイルのパスとフォントサイズを読み込む"""
         if os.path.exists(self.settings_file):
             with open(self.settings_file, 'r', encoding='utf-8') as f:
                 try:
                     settings = json.load(f)
                     self.aux_file_paths = settings.get("aux_file_paths", {})
+                    self.font_size = settings.get("font_size", 10) # デフォルトは10
+                    self.theme = settings.get("theme", "default") # テーマを読み込む
                 except json.JSONDecodeError:
                     messagebox.showwarning("設定エラー", "設定ファイルの読み込みに失敗しました。ファイルが破損している可能性があります。")
                     self.aux_file_paths = {}
+                    self.font_size = 10
         else:
             self.aux_file_paths = {}
+            self.font_size = 10
 
     def save_settings(self):
-        """補助ファイルのパスを設定ファイルに保存する"""
+        """補助ファイルのパスとフォントサイズを設定ファイルに保存する"""
         settings = {
             "aux_file_paths": self.aux_file_paths,
+            "font_size": self.font_size,
+            "theme": self.theme,
         }
         with open(self.settings_file, 'w', encoding='utf-8') as f:
             json.dump(settings, f, ensure_ascii=False, indent=4)
-        messagebox.showinfo("設定保存", "補助ファイルのパス設定を保存しました。")
+        # messagebox.showinfo("設定保存", "設定を保存しました。") # change_font_sizeで個別にメッセージを出すのでコメントアウト
+
+    def update_font_and_theme_style(self):
+        """現在の設定に基づいて、アプリケーション全体のフォントとテーマのスタイルを更新する"""
+        font_tuple = ("TkDefaultFont", self.font_size)
+        
+        # デフォルトスタイルをリセット
+        self.style.theme_use("clam")
+
+        if self.theme == "high_contrast":
+            # 高コントラストテーマの配色
+            bg_color = "#000000" # 背景黒
+            fg_color = "#FFFFFF" # 文字白
+            select_bg = "#00008B" # 選択範囲の背景色 (ダークブルー)
+            select_fg = "#FFFFFF" # 選択範囲の文字色
+
+            self.master.configure(background=bg_color)
+            self.style.configure(".", font=font_tuple, background=bg_color, foreground=fg_color)
+            self.style.configure("TLabel", background=bg_color, foreground=fg_color)
+            self.style.configure("TButton", background="#333333", foreground=fg_color)
+            self.style.map("TButton", background=[('active', '#555555')])
+            self.style.configure("TCombobox", fieldbackground=bg_color, background="#333333", foreground=fg_color)
+            self.style.configure("TEntry", fieldbackground=bg_color, foreground=fg_color, insertcolor=fg_color)
+            self.style.configure("TLabelFrame", background=bg_color, foreground=fg_color)
+            self.style.configure("TLabelFrame.Label", background=bg_color, foreground=fg_color)
+            self.style.configure("Treeview", fieldbackground=bg_color, background=bg_color, foreground=fg_color)
+            self.style.map("Treeview", background=[('selected', select_bg)], foreground=[('selected', select_fg)])
+            self.style.configure("Treeview.Heading", font=("TkDefaultFont", self.font_size, "bold"), background="#333333", foreground=fg_color)
+            self.summary_text.configure(background=bg_color, foreground=fg_color, insertbackground=fg_color)
+        else:
+            # デフォルトテーマのスタイル設定
+            self.style.configure(".", font=font_tuple)
+
+        # Treeviewの行の高さはテーマに関わらずフォントサイズに合わせる
+        self.style.configure("Treeview", rowheight=self.font_size + 10)
+
+    def change_font_size(self):
+        """フォントサイズを変更し、設定を保存して再起動を促す"""
+        new_size = self.font_size_var.get()
+        if self.font_size != new_size:
+            self.font_size = new_size
+            self.save_settings()
+            messagebox.showinfo("フォントサイズ変更", "フォントサイズの設定を保存しました。アプリケーションを再起動すると変更が適用されます。")
+
+    def change_theme(self):
+        """テーマを変更し、設定を保存して再起動を促す"""
+        new_theme = self.theme_var.get()
+        if self.theme != new_theme:
+            self.theme = new_theme
+            self.save_settings()
+            messagebox.showinfo("テーマ変更", "テーマの設定を保存しました。アプリケーションを再起動すると変更が適用されます。")
 
     def load_check_definitions(self):
         """チェック定義ファイルを読み込む。存在しない場合はデフォルトを作成。"""

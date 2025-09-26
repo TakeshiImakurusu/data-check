@@ -5,19 +5,59 @@ import tkinter as tk
 from tkinter import filedialog, messagebox
 import os
 import traceback # Import traceback for detailed error logging
+import configparser
 import re
 import pyodbc
+
+
+def _normalize_odbc_driver(value: str) -> str:
+    driver = value.strip()
+    if driver.startswith('{') and driver.endswith('}'):
+        driver = driver[1:-1]
+    return driver
+
+
+def _enable_deprecated_tls_if_requested(db_config: configparser.SectionProxy) -> None:
+    try:
+        allow = db_config.getboolean('allow_deprecated_tls')
+    except (ValueError, configparser.NoOptionError):
+        allow = False
+    if allow:
+        os.environ['ODBCIGNOREDEPRECATEDTLS'] = '1'
+
+
+def _build_sqlserver_conn_str(db_config: configparser.SectionProxy) -> str:
+    _enable_deprecated_tls_if_requested(db_config)
+    driver = _normalize_odbc_driver(db_config['driver'])
+    parts = [
+        f"DRIVER={{{driver}}}",
+        f"SERVER={db_config['server']}",
+        f"DATABASE={db_config['database']}",
+        f"UID={db_config['uid']}",
+        f"PWD={db_config['pwd']}"
+    ]
+    trust_flag = db_config.get('trust_server_certificate', '').strip()
+    if trust_flag:
+        parts.append(f"TrustServerCertificate={trust_flag}")
+    encrypt_flag = db_config.get('encrypt', '').strip()
+    if encrypt_flag:
+        parts.append(f"Encrypt={encrypt_flag}")
+    return ';'.join(parts) + ';'
 
 # INNOSiTEデータを取得
 def fetch_data():
 
-    # MySQLへの接続（必要に応じてホスト名やデータベース名、ユーザー名、パスワードを変更してください）
+    # MySQLへの接続
+    config = configparser.ConfigParser()
+    config.read('config.ini')
+    db_config = config['KSMAIN2_MYSQL']
+
     conn = pymysql.connect(
-        host="ks-db",   # MySQLサーバーのホスト名
-        database="ksmain2",            # 使用するデータベース名
-        user="root",               # ユーザー名
-        password="",            # パスワード
-        charset='sjis',     # サーバ側のエンコーディングに合わせる
+        host=db_config['host'],
+        database=db_config['database'],
+        user=db_config['user'],
+        password=db_config['password'],
+        charset=db_config['charset'],
     )
     cursor = conn.cursor()
     cursor.execute("SELECT t_stdidata.*, t_stdiproid.* FROM t_stdidata INNER JOIN t_stdiproid ON t_stdidata.stdiid = t_stdiproid.id_stdiid ORDER BY stdid_i ASC;")  # 任意のクエリ
@@ -34,13 +74,17 @@ def fetch_data():
 
 # 営業データを取得
 def fetch_excluded_sales_data():
-    # MySQLへの接続（必要に応じてホスト名やデータベース名、ユーザー名、パスワードを変更してください）
+    # MySQLへの接続
+    config = configparser.ConfigParser()
+    config.read('config.ini')
+    db_config = config['KSMAIN_MYSQL']
+
     conn = pymysql.connect(
-        host="ks-db",   # MySQLサーバーのホスト名
-        database="ksmain",            # 使用するデータベース名
-        user="root",               # ユーザー名
-        password="",            # パスワード
-        charset='sjis',     # サーバ側のエンコーディングに合わせる
+        host=db_config['host'],
+        database=db_config['database'],
+        user=db_config['user'],
+        password=db_config['password'],
+        charset=db_config['charset'],
     )
     cursor = conn.cursor()
     cursor.execute("SELECT salCode, salKName FROM t_salmst_k WHERE salKName LIKE '%×%' OR salKName LIKE '%・%';")
@@ -57,13 +101,17 @@ def fetch_excluded_sales_data():
 
 # 倒産している販売店データ取得
 def fetch_bankrupt_shop_data():
-    # MySQLへの接続（必要に応じてホスト名やデータベース名、ユーザー名、パスワードを変更してください）
+    # MySQLへの接続
+    config = configparser.ConfigParser()
+    config.read('config.ini')
+    db_config = config['KSMAIN_MYSQL']
+
     conn = pymysql.connect(
-        host="ks-db",   # MySQLサーバーのホスト名
-        database="ksmain",            # 使用するデータベース名
-        user="root",               # ユーザー名
-        password="",            # パスワード
-        charset='sjis',     # サーバ側のエンコーディングに合わせる
+        host=db_config['host'],
+        database=db_config['database'],
+        user=db_config['user'],
+        password=db_config['password'],
+        charset=db_config['charset'],
     )
     cursor = conn.cursor()
     cursor.execute("SELECT maiCode FROM t_stdmain_h WHERE maiName1 LIKE '%★%' OR maiName1 LIKE '%×%' OR maiName1 LIKE '%▲%';")
@@ -80,7 +128,11 @@ def fetch_bankrupt_shop_data():
 
 # 保守DBからデータを取得
 def fetch_hosyu_data():
-    conn_str = "DRIVER={ODBC Driver 17 for SQL Server};SERVER=kssql-sv1\\kssql;DATABASE=DEKISPART_MNT;UID=si-dbuser;PWD=6QEACDw3;TrustServerCertificate=yes"
+    config = configparser.ConfigParser()
+    config.read('config.ini')
+    db_config = config['DEKISPART_MNT_DB']
+
+    conn_str = _build_sqlserver_conn_str(db_config)
     conn = pyodbc.connect(conn_str)
     cursor = conn.cursor()
     cursor.execute("SELECT * FROM T_stdData")  # 任意のクエリ
@@ -97,7 +149,11 @@ def fetch_hosyu_data():
     return df
 
 def get_sales_master_data():
-    conn_str = "DRIVER={ODBC Driver 17 for SQL Server};SERVER=kssql-sv1\\kssql;DATABASE=DEKISPART_MNT;UID=si-dbuser;PWD=6QEACDw3;TrustServerCertificate=yes"
+    config = configparser.ConfigParser()
+    config.read('config.ini')
+    db_config = config['DEKISPART_MNT_DB']
+
+    conn_str = _build_sqlserver_conn_str(db_config)
     conn = pyodbc.connect(conn_str)
     cursor = conn.cursor()
     cursor.execute("SELECT * FROM T_salMst")  # 任意のクエリ

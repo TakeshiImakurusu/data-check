@@ -9,6 +9,43 @@ from dateutil.relativedelta import relativedelta
 import os
 import traceback
 import logging
+import configparser
+
+
+
+def _normalize_odbc_driver(value: str) -> str:
+    driver = value.strip()
+    if driver.startswith('{') and driver.endswith('}'):
+        driver = driver[1:-1]
+    return driver
+
+
+def _enable_deprecated_tls_if_requested(db_config: configparser.SectionProxy) -> None:
+    try:
+        allow = db_config.getboolean('allow_deprecated_tls')
+    except (ValueError, configparser.NoOptionError):
+        allow = False
+    if allow:
+        os.environ['ODBCIGNOREDEPRECATEDTLS'] = '1'
+
+
+def _build_sqlserver_conn_str(db_config: configparser.SectionProxy) -> str:
+    _enable_deprecated_tls_if_requested(db_config)
+    driver = _normalize_odbc_driver(db_config['driver'])
+    parts = [
+        f"DRIVER={{{driver}}}",
+        f"SERVER={db_config['server']}",
+        f"DATABASE={db_config['database']}",
+        f"UID={db_config['uid']}",
+        f"PWD={db_config['pwd']}"
+    ]
+    trust_flag = db_config.get('trust_server_certificate', '').strip()
+    if trust_flag:
+        parts.append(f"TrustServerCertificate={trust_flag}")
+    encrypt_flag = db_config.get('encrypt', '').strip()
+    if encrypt_flag:
+        parts.append(f"Encrypt={encrypt_flag}")
+    return ';'.join(parts) + ';'
 
 # ログ設定
 # 実行ファイルと同じディレクトリにログを出力する例
@@ -21,7 +58,11 @@ logging.basicConfig(
 
 # DBからデータを取得
 def fetch_data():
-    conn_str = "DRIVER={ODBC Driver 17 for SQL Server};SERVER=kssql-sv1\\kssql;DATABASE=DEKISPART_MNT;UID=si-dbuser;PWD=6QEACDw3;TrustServerCertificate=yes"
+    config = configparser.ConfigParser()
+    config.read('config.ini')
+    db_config = config['DEKISPART_MNT_DB']
+
+    conn_str = _build_sqlserver_conn_str(db_config)
     conn = pyodbc.connect(conn_str)
     cursor = conn.cursor()
     cursor.execute("SELECT * FROM T_stdData")  # 任意のクエリ
@@ -38,7 +79,11 @@ def fetch_data():
     return df
 
 def get_sales_master_data():
-    conn_str = "DRIVER={ODBC Driver 17 for SQL Server};SERVER=kssql-sv1\\kssql;DATABASE=DEKISPART_MNT;UID=si-dbuser;PWD=6QEACDw3;TrustServerCertificate=yes"
+    config = configparser.ConfigParser()
+    config.read('config.ini')
+    db_config = config['DEKISPART_MNT_DB']
+
+    conn_str = _build_sqlserver_conn_str(db_config)
     conn = pyodbc.connect(conn_str)
     cursor = conn.cursor()
     cursor.execute("SELECT * FROM T_salMst")  # 任意のクエリ
@@ -67,12 +112,16 @@ def get_mysql_connection():
     MySQL（イノサイト）への接続を取得する関数
     innosite.pyのfetch_data関数を参考に実装
     """
+    config = configparser.ConfigParser()
+    config.read('config.ini')
+    db_config = config['KSMAIN2_MYSQL']
+
     return pymysql.connect(
-        host="ks-db",
-        database="ksmain2",
-        user="root",
-        password="",
-        charset='sjis',
+        host=db_config['host'],
+        database=db_config['database'],
+        user=db_config['user'],
+        password=db_config['password'],
+        charset=db_config['charset'],
     )
 
 def get_sqlserver_connection():
@@ -80,7 +129,11 @@ def get_sqlserver_connection():
     SQL Server（デキスパート）への接続を取得する関数
     他のチェック関数でも使用可能
     """
-    conn_str = "DRIVER={ODBC Driver 17 for SQL Server};SERVER=kssql-sv1\\kssql;DATABASE=DEKISPART_MNT;UID=si-dbuser;PWD=6QEACDw3;TrustServerCertificate=yes"
+    config = configparser.ConfigParser()
+    config.read('config.ini')
+    db_config = config['DEKISPART_MNT_DB']
+
+    conn_str = _build_sqlserver_conn_str(db_config)
     return pyodbc.connect(conn_str)
 
 # --- 各チェックロジックをカプセル化した関数群 ---
