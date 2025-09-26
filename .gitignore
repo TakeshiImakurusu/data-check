@@ -1,3 +1,9 @@
-
 # Configuration file with credentials
 config.ini
+
+# Python specific ignores
+.venv/
+__pycache__/
+application.log
+input_file/
+temp/
