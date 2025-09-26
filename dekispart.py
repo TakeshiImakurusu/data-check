@@ -10,7 +10,7 @@ import os
 import traceback
 import logging
 import configparser
-from dekispart_school import fetch_data_from_db
+from dekispart_school import fetch_data_from_db, get_salKName2K_from_salCode
 
 
 
@@ -738,19 +738,10 @@ def check_0043(row, errors_list):
         if not stdTpla_value: # stdTplaが空の場合はチェックをスキップ
             return
 
-        query = f"SELECT salKName2K FROM t_salmst_k WHERE salCode = '{stdTpla_value}'"
-        try:
-            df_salmst_k = fetch_data_from_db("KSMAIN_MYSQL", query)
-            if not df_salmst_k.empty:
-                salKName2K = str(df_salmst_k.iloc[0]['salKName2K']).strip()
-                if stdTpla_value != salKName2K:
-                    _add_error_message(errors_list, row["stdUserID"], "DEKISPART_CHK_0043", row.get("stdID", ""))
-            else:
-                # salCodeに一致するデータがない場合もNGとする
-                _add_error_message(errors_list, row["stdUserID"], "DEKISPART_CHK_0043", row.get("stdID", ""))
-        except Exception as e:
-            logging.error(f"Error fetching salKName2K for stdTpla '{stdTpla_value}': {e}")
-            _add_error_message(errors_list, row["stdUserID"], "DEKISPART_CHK_0043_DB_ERROR", row.get("stdID", ""))
+        salKName2K = get_salKName2K_from_salCode(stdTpla_value)
+
+        if salKName2K is None or stdTpla_value != salKName2K:
+            _add_error_message(errors_list, row["stdUserID"], "DEKISPART_CHK_0043", row.get("stdID", ""))
 
 def check_0044(row, errors_list):
     """

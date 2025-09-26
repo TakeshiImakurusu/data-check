@@ -187,6 +187,22 @@ def fetch_bankrupt_shop_data() -> pd.DataFrame:
     query = "SELECT maiCode FROM t_stdmain_h WHERE maiName1 LIKE '%★%' OR maiName1 LIKE '%×%' OR maiName1 LIKE '%▲%';"
     return fetch_data_from_db("KSMAIN_MYSQL", query)
 
+def get_salKName2K_from_salCode(sal_code: str) -> str | None:
+    """
+    salCodeを元にt_salmst_kからsalKName2Kを取得する汎用関数。
+    """
+    if not sal_code:
+        return None
+    query = f"SELECT salKName2K FROM t_salmst_k WHERE salCode = '{sal_code}'"
+    try:
+        df = fetch_data_from_db("KSMAIN_MYSQL", query)
+        if not df.empty:
+            return str(df.iloc[0]['salKName2K']).strip()
+        return None
+    except Exception as e:
+        print(f"Error fetching salKName2K for salCode '{sal_code}': {e}")
+        return None
+
 # --- 補助データ読み込み関数 ---
 def load_totalnet_list(file_path: str | None) -> pd.DataFrame:
     """トータルネットリストをCSVから読み込む。"""
