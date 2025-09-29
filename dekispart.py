@@ -863,9 +863,9 @@ def check_0057(row, errors_list):
 
 def check_0058(row, errors_list):
     """
-    DEKISPART_CHK_0058: stdNsyu(入金経路)が121でstdKbiko(備考（更新・一斉）)に”更新案内不要"を含む場合NG
+    DEKISPART_CHK_0058: 加入中に限り、備考に「別送」が含まれる場合、更新案内フラグは「別送(2)」でなくてはならない
     """
-    if str(row["stdNsyu"]) == "121" and "更新案内不要" in str(row["stdKbiko"]):
+    if row["stdKaiyaku"] == False and "別送" in str(row["stdKbiko"]) and str(row["stdHassouType"]) != "2":
         _add_error_message(errors_list, row["stdUserID"], "DEKISPART_CHK_0058", row.get("stdID", ""))
 
 def check_0059(row, errors_list, customers_list):
@@ -946,13 +946,6 @@ def check_0060(row, errors_list):
     except Exception as e:
         logging.error(f"DEKISPART_CHK_0060でエラーが発生しました: {e}")
         # エラーが発生した場合はスキップ（ログに記録）
-
-def check_0058(row, errors_list):
-    """
-    DEKISPART_CHK_0058: 加入中に限り、備考に「別送」が含まれる場合、更新案内フラグは「別送(2)」でなくてはならない
-    """
-    if row["stdKaiyaku"] == False and "別送" in str(row["stdKbiko"]) and str(row["stdHassouType"]) != "2":
-        _add_error_message(errors_list, row["stdUserID"], "DEKISPART_CHK_0058", row.get("stdID", ""))
 
 # データチェック関数
 def validate_data(df, progress_callback, individual_list, totalnet_list, sales_person_list, customers_list):
