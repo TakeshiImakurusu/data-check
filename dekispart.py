@@ -947,12 +947,12 @@ def check_0060(row, errors_list):
         logging.error(f"DEKISPART_CHK_0060でエラーが発生しました: {e}")
         # エラーが発生した場合はスキップ（ログに記録）
 
-def check_0061(row, errors_list):
+def check_0058(row, errors_list):
     """
-    DEKISPART_CHK_0061: 加入中に限り、備考に「別送」が含まれる場合、更新案内フラグは「別送(2)」でなくてはならない
+    DEKISPART_CHK_0058: 加入中に限り、備考に「別送」が含まれる場合、更新案内フラグは「別送(2)」でなくてはならない
     """
     if row["stdKaiyaku"] == False and "別送" in str(row["stdKbiko"]) and str(row["stdHassouType"]) != "2":
-        _add_error_message(errors_list, row["stdUserID"], "DEKISPART_CHK_0061", row.get("stdID", ""))
+        _add_error_message(errors_list, row["stdUserID"], "DEKISPART_CHK_0058", row.get("stdID", ""))
 
 # データチェック関数
 def validate_data(df, progress_callback, individual_list, totalnet_list, sales_person_list, customers_list):
@@ -1011,7 +1011,6 @@ def validate_data(df, progress_callback, individual_list, totalnet_list, sales_p
         lambda row, errors: check_0038_sales_master_related(row, errors, sales_master_dict),
         lambda row, errors: check_0059(row, errors, customers_list),
         check_0060,
-        check_0061,
     ]
 
     for index, row in df.iterrows():
