@@ -856,9 +856,9 @@ def check_0056(row, errors_list):
 
 def check_0057(row, errors_list):
     """
-    DEKISPART_CHK_0057: stdNsyu(入金経路)が121でstdHassouType(更新案内不要（0＝不要　1＝送る　2＝別送）)が0の場合NG
+    DEKISPART_CHK_0057: 加入中に限り、入金経路が自振(121)の場合は更新案内は「送る(1)」でなくてはならない
     """
-    if str(row["stdNsyu"]) == "121" and str(row["stdHassouType"]) == "0":
+    if row["stdKaiyaku"] == False and str(row["stdNsyu"]) == "121" and str(row["stdHassouType"]) != "1":
         _add_error_message(errors_list, row["stdUserID"], "DEKISPART_CHK_0057", row.get("stdID", ""))
 
 def check_0058(row, errors_list):

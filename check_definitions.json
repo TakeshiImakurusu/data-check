@@ -393,10 +393,10 @@
     },
     "DEKISPART_CHK_0057": {
         "series": "DEKISPART",
-        "name": "stdNsyu「121」とstdHassouType「0」の組み合わせチェック",
-        "user_message": "stdNsyu(入金経路)が121でstdHassouType(更新案内不要（0=不要、1=送る、2=別送）)が0の場合NGです。",
+        "name": "加入中の自振契約における更新案内設定チェック",
+        "user_message": "加入中に限り、入金経路が自振(121)の場合は更新案内は「送る(1)」でなくてはなりません。",
         "severity": "エラー",
-        "description": "stdNsyu（入金経路）が「121」であり、かつstdHassouType（更新案内不要フラグ）が「0」（不要）である場合に検出されます。入金経路と更新案内不要フラグの矛盾を確認します。"
+        "description": "stdKaiyakuがFALSE（加入中）かつ、stdNsyu（入金経路）が「121」（自振）の場合、stdHassouType（更新案内）は「1」（送る）である必要があります。これに一致しない場合に検出されます。"
     },
     "DEKISPART_CHK_0058": {
         "series": "DEKISPART",
