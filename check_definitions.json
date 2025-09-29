@@ -405,12 +405,19 @@
         "severity": "エラー",
         "description": "stdNsyu（入金経路）が「121」であり、かつstdKbiko（備考）に「更新案内不要」という文字列が含まれている場合に検出されます。入金経路と備考内容の矛盾を確認します。"
     },
-    "DEKISPART_CHK_0059": {
+    "DEKISPART_CHK_0060": {
         "series": "DEKISPART",
-        "name": "担当者マスタの担当敬称とstdFlg4の整合性チェック",
-        "user_message": "担当者マスタの担当敬称とstdFlg4の整合性が取れていません",
+        "name": "イノサイトデータとの関連チェック",
+        "user_message": "イノサイトデータとの関連で不整合が検出されました。",
         "severity": "エラー",
-        "description": "担当者マスタのM列（担当敬称）と stdFlg4 の整合性をチェックします。「様」の場合はstdFlg4がTRUE、「御中」の場合はstdFlg4がFALSE、それ以外はエラーとなります。"
+        "description": "t_stdidata.stdiinnoidが321から始まり、stdipcodeが1541、かつstdid_iが現在のレコードのstdIDと一致するデータがある場合、関連するT_stdItemにitmCode=\"1494\"が存在しない場合はNGとなります。"
+    },
+    "DEKISPART_CHK_0061": {
+        "series": "DEKISPART",
+        "name": "加入中の備考「別送」と更新案内フラグの整合性チェック",
+        "user_message": "加入中に限り、備考に「別送」が含まれる場合、更新案内フラグは「別送(2)」でなくてはなりません。",
+        "severity": "エラー",
+        "description": "stdKaiyakuがFALSE（加入中）かつ、stdKbiko（備考）に「別送」という文字列が含まれる場合、stdHassouType（更新案内）は「2」（別送）である必要があります。これに一致しない場合に検出されます。"
     },
     "INNOSITE_CHK_0001": {
         "series": "INNOSITE",
