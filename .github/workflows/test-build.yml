@@ -54,7 +54,7 @@ jobs:
         echo "=== Attempting main application build ==="
         
         # Simple spec file for testing
-        cat <<EOF > data_check_test.spec
+        $specContent = @'
 # -*- mode: python ; coding: utf-8 -*-
 block_cipher = None
 
@@ -99,8 +99,9 @@ exe = EXE(
     console=True,
     disable_windowed_traceback=False,
 )
-EOF
-pyinstaller data_check_test.spec --clean --noconfirm        
+'@
+        Set-Content -Path data_check_test.spec -Value $specContent -Encoding UTF8
+        pyinstaller data_check_test.spec --clean --noconfirm
     - name: Check build results
       run: |
         echo "=== Build Results ==="
