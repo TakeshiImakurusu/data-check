@@ -7,6 +7,56 @@ import os
 import sys
 import json
 import datetime
+import shutil
+from pathlib import Path
+
+
+def _get_runtime_root() -> Path:
+    """Return the directory where runtime-writable files should live."""
+    if getattr(sys, "frozen", False):  # PyInstaller runtime
+        return Path(sys.executable).resolve().parent
+    return Path(__file__).resolve().parent
+
+
+def _get_bundle_root() -> Path:
+    """Return the directory where bundled resources are located."""
+    if getattr(sys, "frozen", False) and hasattr(sys, "_MEIPASS"):
+        return Path(sys._MEIPASS)
+    return _get_runtime_root()
+
+
+RUNTIME_ROOT = _get_runtime_root()
+BUNDLE_ROOT = _get_bundle_root()
+
+if getattr(sys, "frozen", False):
+    try:
+        os.chdir(RUNTIME_ROOT)
+    except OSError:
+        # 変更できない場合はそのまま進行
+        pass
+
+
+def ensure_runtime_file(filename: str, default_text: str | None = None) -> Path:
+    """Ensure a runtime-writable copy of the bundled file exists and return its path."""
+    runtime_path = RUNTIME_ROOT / filename
+    if runtime_path.exists():
+        return runtime_path
+
+    bundle_path = BUNDLE_ROOT / filename
+
+    try:
+        runtime_path.parent.mkdir(parents=True, exist_ok=True)
+        if bundle_path.exists():
+            shutil.copy2(bundle_path, runtime_path)
+        elif default_text is not None:
+            runtime_path.write_text(default_text, encoding="utf-8")
+    except Exception as exc:  # noqa: BLE001 - ログ出力用の包括的例外捕捉
+        print(
+            f"[ERROR] ランタイムファイル '{filename}' を準備できませんでした: {exc}",
+            file=sys.stderr,
+        )
+
+    return runtime_path
 
 # 早期の引数チェック - GUI初期化やモジュールインポートの前に実行
 if __name__ == "__main__":
@@ -132,11 +182,12 @@ class DataCheckerApp:
         self.style = ttk.Style()
         self.style.theme_use("clam")
 
+        self.runtime_root = RUNTIME_ROOT
         self.aux_file_paths = {}
         self.font_size = 10 # デフォルトフォントサイズ
         self.theme = "default" # デフォルトテーマ
-        self.settings_file = "app_settings.json"
-        self.check_definitions_file = "check_definitions.json" # チェック定義ファイル名
+        self.settings_file = ensure_runtime_file("app_settings.json", default_text="{}")
+        self.check_definitions_file = ensure_runtime_file("check_definitions.json") # チェック定義ファイル名
         self.check_definitions = {} # チェック定義を格納する辞書
 
         # メニューオブジェクトへの参照を保持するための変数を初期化
@@ -359,8 +410,8 @@ class DataCheckerApp:
 
     def load_settings(self):
         """設定ファイルから補助ファイルのパスとフォントサイズを読み込む"""
-        if os.path.exists(self.settings_file):
-            with open(self.settings_file, 'r', encoding='utf-8') as f:
+        if self.settings_file.exists():
+            with self.settings_file.open('r', encoding='utf-8') as f:
                 try:
                     settings = json.load(f)
                     self.aux_file_paths = settings.get("aux_file_paths", {})
@@ -381,7 +432,7 @@ class DataCheckerApp:
             "font_size": self.font_size,
             "theme": self.theme,
         }
-        with open(self.settings_file, 'w', encoding='utf-8') as f:
+        with self.settings_file.open('w', encoding='utf-8') as f:
             json.dump(settings, f, ensure_ascii=False, indent=4)
         # messagebox.showinfo("設定保存", "設定を保存しました。") # change_font_sizeで個別にメッセージを出すのでコメントアウト
 
@@ -437,9 +488,9 @@ class DataCheckerApp:
 
     def load_check_definitions(self):
         """チェック定義ファイルを読み込む。存在しない場合はデフォルトを作成。"""
-        if os.path.exists(self.check_definitions_file):
+        if self.check_definitions_file.exists():
             try:
-                with open(self.check_definitions_file, 'r', encoding='utf-8') as f:
+                with self.check_definitions_file.open('r', encoding='utf-8') as f:
                     self.check_definitions = json.load(f)
             except json.JSONDecodeError:
                 messagebox.showwarning("設定エラー", "チェック定義ファイルの読み込みに失敗しました。ファイルが破損している可能性があります。デフォルト設定を再生成します。")
@@ -479,7 +530,8 @@ class DataCheckerApp:
     def save_check_definitions(self):
         """チェック定義をファイルに保存する"""
         try:
-            with open(self.check_definitions_file, 'w', encoding='utf-8') as f:
+            self.check_definitions_file.parent.mkdir(parents=True, exist_ok=True)
+            with self.check_definitions_file.open('w', encoding='utf-8') as f:
                 json.dump(self.check_definitions, f, ensure_ascii=False, indent=4)
         except Exception as e:
             messagebox.showerror("保存エラー", f"チェック定義ファイルの保存中にエラーが発生しました。\n詳細: {e}")

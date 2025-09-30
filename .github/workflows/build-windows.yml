@@ -84,7 +84,7 @@ jobs:
         echo "    strip=False," >> data_check.spec
         echo "    upx=False," >> data_check.spec
         echo "    runtime_tmpdir=None," >> data_check.spec
-        echo "    console=True," >> data_check.spec
+        echo "    console=False," >> data_check.spec
         echo "    disable_windowed_traceback=False" >> data_check.spec
         echo ")" >> data_check.spec
         echo "Spec file created successfully"
