@@ -98,9 +98,7 @@ exe = EXE(
     console=True,
     disable_windowed_traceback=False,
 )\" > data_check_test.spec
-        
-        pyinstaller data_check_test.spec --clean --noconfirm
-        
+pyinstaller data_check_test.spec --clean --noconfirm        
     - name: Check build results
       run: |
         echo "=== Build Results ==="
