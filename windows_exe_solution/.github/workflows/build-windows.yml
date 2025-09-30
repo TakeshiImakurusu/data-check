@@ -1,0 +1,136 @@
+name: Build Windows EXE
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build-windows-exe:
+    runs-on: windows-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install pyinstaller pandas openpyxl pyodbc pymysql configparser
+    
+    - name: Prepare files for PyInstaller
+      run: |
+        echo "Modifying data_check.py for static imports..."
+        python -c "
+import re
+with open('data_check.py', 'r', encoding='utf-8') as f:
+    content = f.read()
+
+# 静的インポート版に変更
+static_imports = '''# PyInstaller対応: 静的インポート
+import dekispart
+import innosite
+import dekispart_school
+import cloud
+
+SERIES_MODULE_NAMES = ['dekispart', 'innosite', 'dekispart_school', 'cloud']
+missing_series_modules = []
+missing_dependencies = set()
+
+globals()[\"dekispart\"] = dekispart
+globals()[\"innosite\"] = innosite  
+globals()[\"dekispart_school\"] = dekispart_school
+globals()[\"cloud\"] = cloud'''
+
+# 動的インポート部分を置換
+if 'importlib.import_module' in content:
+    # 簡単な置換
+    lines = content.split('\n')
+    new_lines = []
+    skip_section = False
+    
+    for line in lines:
+        if 'SERIES_MODULE_NAMES = [' in line:
+            new_lines.append(static_imports)
+            skip_section = True
+        elif skip_section and ('missing_dependencies.add' in line or 'messagebox.showerror' in line):
+            skip_section = False
+            new_lines.append(line)
+        elif not skip_section:
+            new_lines.append(line)
+    
+    content = '\n'.join(new_lines)
+
+with open('data_check.py', 'w', encoding='utf-8') as f:
+    f.write(content)
+print('Static imports applied')
+        "
+    
+    - name: Create PyInstaller spec
+      run: |
+        echo 'Creating spec file...'
+        echo "# -*- mode: python ; coding: utf-8 -*-
+block_cipher = None
+
+a = Analysis(
+    ['data_check.py'],
+    pathex=[],
+    binaries=[],
+    datas=[
+        ('app_settings.json', '.'),
+        ('check_definitions.json', '.'),
+        ('input_file', 'input_file'),
+    ],
+    hiddenimports=[
+        'dekispart', 'innosite', 'dekispart_school', 'cloud',
+        'pandas._libs.tslibs.base', 'pandas._libs.tslibs.timedeltas',
+        'tkinter', 'tkinter.ttk', 'tkinter.messagebox', 'tkinter.filedialog',
+        'configparser', 'openpyxl.cell._writer'
+    ],
+    hookspath=[],
+    runtime_hooks=[],
+    excludes=['matplotlib', 'scipy', 'IPython', 'pytest'],
+    win_no_prefer_redirects=False,
+    win_private_assemblies=False,
+    cipher=block_cipher,
+)
+
+pyz = PYZ(a.pure, a.zipped_data, cipher=block_cipher)
+
+exe = EXE(
+    pyz, a.scripts, a.binaries, a.zipfiles, a.datas, [],
+    name='DataCheck',
+    debug=False,
+    bootloader_ignore_signals=False,
+    strip=False, upx=True, upx_exclude=[],
+    runtime_tmpdir=None,
+    console=False,
+    disable_windowed_traceback=False,
+)" > data_check.spec
+    
+    - name: Build Windows EXE
+      run: |
+        pyinstaller data_check.spec --clean --noconfirm
+    
+    - name: Verify and upload EXE
+      run: |
+        if (Test-Path "dist\DataCheck.exe") {
+          Write-Host "✅ DataCheck.exe created successfully"
+          $size = (Get-Item "dist\DataCheck.exe").Length / 1MB
+          Write-Host "📦 Size: $($size.ToString('F1')) MB"
+        } else {
+          Write-Host "❌ Build failed"
+          exit 1
+        }
+    
+    - name: Upload Windows EXE Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: DataCheck-Windows-EXE
+        path: dist/DataCheck.exe
+        retention-days: 30

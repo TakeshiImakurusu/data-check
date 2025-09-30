@@ -1,0 +1,20 @@
+{
+    "aux_file_paths": {
+        "dekispart_individual_list_path": "C:/Users/ta-imakurusu/OneDrive - 株式会社建設システム/データ整理_develop/【提出用】個人名チェック.xlsx",
+        "dekispart_totalnet_list_path": "C:/Users/ta-imakurusu/OneDrive - 株式会社建設システム/デスクトップ/データ整理_develop/支払人マスタ20250228.CSV",
+        "dekispart_unnecessary_dealer_list_path": "C:/Users/ta-imakurusu/OneDrive - 株式会社建設システム/デスクトップ/データ整理_develop/保守・クラウド更新案内・自振DM不要 販売店リスト.xlsx",
+        "dekispart_sales_person_list_path": "C:/Users/ta-imakurusu/OneDrive - 株式会社建設システム/デスクトップ/データ整理_develop/担当者マスタ.csv",
+        "dekispart_customers_list_path": "C:/Users/ta-imakurusu/OneDrive - 株式会社建設システム/デスクトップ/データ整理_develop/得意先マスタ.csv",
+        "individual_list_path": "/home/ta-imakurusu/data-check/input_file/【提出用】個人名チェック.xlsx",
+        "totalnet_list_path": "/home/ta-imakurusu/data-check/input_file/支払人マスタ20250228.csv",
+        "unnecessary_dealer_list_path": "C:/develop/データ整理_develop/保守・クラウド更新案内・自振DM不要 販売店リスト.xlsx",
+        "sales_person_list_path": "/home/ta-imakurusu/data-check/input_file/担当者マスタ.csv",
+        "customers_list_path": "/home/ta-imakurusu/data-check/input_file/得意先マスタ.csv",
+        "innosite_aux_file1_path": "",
+        "innosite_aux_file2_path": "",
+        "dekispart_school_aux_file1_path": "",
+        "cloud_aux_file1_path": ""
+    },
+    "font_size": 10,
+    "theme": "default"
+}
