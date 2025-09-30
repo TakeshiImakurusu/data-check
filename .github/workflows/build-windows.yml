@@ -46,7 +46,6 @@ jobs:
         echo "=== Checking required files ==="
         if (Test-Path "app_settings.json") { echo "OK app_settings.json" } else { echo "MISSING app_settings.json"; exit 1 }
         if (Test-Path "check_definitions.json") { echo "OK check_definitions.json" } else { echo "MISSING check_definitions.json"; exit 1 }
-        if (Test-Path "input_file") { echo "OK input_file directory" } else { echo "MISSING input_file directory"; exit 1 }
         if (Test-Path "config.ini") { echo "OK config.ini (optional)" } else { echo "WARNING config.ini not found, will be included separately" }
         echo "File check completed"
     
@@ -63,7 +62,6 @@ jobs:
         echo "    datas=[" >> data_check.spec
         echo "        ('app_settings.json', '.')," >> data_check.spec
         echo "        ('check_definitions.json', '.')," >> data_check.spec
-        echo "        ('input_file', 'input_file')," >> data_check.spec
         echo "    ]," >> data_check.spec
         echo "    hiddenimports=[" >> data_check.spec
         echo "        'dekispart', 'innosite', 'dekispart_school', 'cloud'," >> data_check.spec
@@ -137,7 +135,6 @@ jobs:
           app_settings.json
           check_definitions.json
           config.ini
-          input_file/
           DISTRIBUTION_README.md
         retention-days: 30
         
