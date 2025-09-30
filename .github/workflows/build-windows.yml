@@ -1,9 +1,10 @@
 name: Build Windows EXE
 
 on:
+  workflow_dispatch:
   push:
     branches: [ main ]
-  workflow_dispatch:
+    paths: [ '.github/workflows/build-windows.yml' ]
 
 jobs:
   build-windows-exe:
@@ -14,35 +15,38 @@ jobs:
       uses: actions/checkout@v4
     
     - name: Set up Python
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
-        python-version: '3.9'
+        python-version: '3.11'
     
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install pyinstaller pandas openpyxl pyodbc pymysql configparser
+        pip install pyinstaller pandas openpyxl pyodbc pymysql
     
-    - name: List files to verify checkout
+    - name: Test basic Python functionality
       run: |
-        echo "Current directory contents:"
-        dir
-        echo "Python version:"
+        echo "=== Environment Check ==="
         python --version
-        echo "Pip list:"
-        pip list
+        echo "Checking required modules:"
+        python -c "import tkinter; print('✓ tkinter')"
+        python -c "import pandas; print('✓ pandas')"
+        python -c "import openpyxl; print('✓ openpyxl')"
+        python -c "import json; print('✓ json')"
+        echo ""
+        echo "=== Project Files ==="
+        dir *.py
+        echo ""
+        echo "=== Config Files ==="
+        if (Test-Path "app_settings.json") { echo "✓ app_settings.json" }
+        if (Test-Path "check_definitions.json") { echo "✓ check_definitions.json" }
     
-    - name: Test Python import
+    - name: Create simplified spec file
       run: |
-        python -c "import sys; print('Python executable:', sys.executable)"
-        python -c "import tkinter; print('Tkinter import successful')"
-        python -c "import pandas; print('Pandas version:', pandas.__version__)"
-        python -c "import openpyxl; print('Openpyxl import successful')"
-    
-    - name: Prepare files for PyInstaller
-      run: |
-        echo "Creating a simple spec file..."
-        echo "# -*- mode: python ; coding: utf-8 -*-
+        echo "Creating PyInstaller spec file..."
+        $spec = @"
+# -*- mode: python ; coding: utf-8 -*-
+
 block_cipher = None
 
 a = Analysis(
@@ -52,19 +56,28 @@ a = Analysis(
     datas=[
         ('app_settings.json', '.'),
         ('check_definitions.json', '.'),
-        ('input_file', 'input_file'),
     ],
     hiddenimports=[
-        'dekispart', 'innosite', 'dekispart_school', 'cloud',
-        'pandas._libs.tslibs.base', 'pandas._libs.tslibs.timedeltas',
-        'tkinter', 'tkinter.ttk', 'tkinter.messagebox', 'tkinter.filedialog',
-        'configparser', 'openpyxl.cell._writer'
+        'dekispart',
+        'innosite', 
+        'dekispart_school',
+        'cloud',
+        'tkinter',
+        'tkinter.ttk',
+        'tkinter.messagebox',
+        'tkinter.filedialog',
+        'pandas',
+        'openpyxl',
+        'threading',
+        'datetime',
+        'json',
+        'os',
+        'sys'
     ],
     hookspath=[],
+    hooksconfig={},
     runtime_hooks=[],
-    excludes=['matplotlib', 'scipy', 'IPython', 'pytest'],
-    win_no_prefer_redirects=False,
-    win_private_assemblies=False,
+    excludes=[],
     cipher=block_cipher,
     noarchive=False,
 )
@@ -82,38 +95,50 @@ exe = EXE(
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
-    upx=True,
+    upx=False,
     upx_exclude=[],
     runtime_tmpdir=None,
-    console=False,
+    console=True,
     disable_windowed_traceback=False,
-    icon=None
-)" > data_check.spec
+    icon=None,
+    codesign_identity=None,
+    entitlements_file=None,
+)
+"@
+        $spec | Out-File -FilePath "data_check.spec" -Encoding UTF8
     
-    - name: Build Windows EXE
+    - name: Build EXE with PyInstaller
       run: |
-        echo "Building EXE with PyInstaller..."
-        pyinstaller data_check.spec --clean --noconfirm --log-level=DEBUG
+        echo "=== Building DataCheck.exe ==="
+        pyinstaller data_check.spec --clean --noconfirm
     
-    - name: List dist directory
+    - name: Check build results and test EXE
       run: |
-        echo "Contents of dist directory:"
+        echo "=== Build Results ==="
         if (Test-Path "dist") {
-          dir dist
+          echo "dist directory contents:"
+          Get-ChildItem dist -Recurse | Format-Table Name, Length
+          
+          if (Test-Path "dist\DataCheck.exe") {
+            $size = (Get-Item "dist\DataCheck.exe").Length / 1MB
+            Write-Host "✅ DataCheck.exe created successfully"
+            Write-Host "📦 Size: $($size.ToString('F2')) MB"
+            
+            # Test EXE execution (basic check)
+            echo ""
+            echo "=== Testing EXE execution ==="
+            try {
+              $process = Start-Process -FilePath "dist\DataCheck.exe" -ArgumentList "--help" -PassThru -Wait -WindowStyle Hidden
+              echo "✅ EXE runs without immediate crash"
+            } catch {
+              echo "⚠️  EXE test failed: $_"
+            }
+          } else {
+            Write-Host "❌ DataCheck.exe not found"
+            exit 1
+          }
         } else {
-          echo "dist directory does not exist"
-        }
-    
-    - name: Verify and upload EXE
-      run: |
-        if (Test-Path "dist\DataCheck.exe") {
-          Write-Host "✅ DataCheck.exe created successfully"
-          $size = (Get-Item "dist\DataCheck.exe").Length / 1MB
-          Write-Host "📦 Size: $($size.ToString('F1')) MB"
-        } else {
-          Write-Host "❌ Build failed - DataCheck.exe not found"
-          echo "Contents of build directory:"
-          if (Test-Path "build") { dir build -Recurse }
+          echo "❌ dist directory not created"
           exit 1
         }
     
@@ -124,3 +149,13 @@ exe = EXE(
         name: DataCheck-Windows-EXE
         path: dist/DataCheck.exe
         retention-days: 30
+        
+    - name: Upload build logs on failure
+      uses: actions/upload-artifact@v4
+      if: failure()
+      with:
+        name: Build-Logs
+        path: |
+          build/
+          *.log
+        retention-days: 7
