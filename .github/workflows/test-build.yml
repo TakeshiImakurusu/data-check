@@ -31,22 +31,22 @@ jobs:
         echo ""
         echo "=== Python modules test ==="
         python -c "import sys; print('Python:', sys.version)"
-        python -c "import tkinter; print('✓ tkinter')"
-        python -c "import pandas; print('✓ pandas')"
-        python -c "import openpyxl; print('✓ openpyxl')"
-        python -c "import configparser; print('✓ configparser')"
-        echo "✅ All imports successful"
+        python -c "import tkinter; print('[OK] tkinter')"
+        python -c "import pandas; print('[OK] pandas')"
+        python -c "import openpyxl; print('[OK] openpyxl')"
+        python -c "import configparser; print('[OK] configparser')"
+        echo "[SUCCESS] All imports successful"
     
     - name: Test PyInstaller basic functionality
       run: |
         echo "=== Testing PyInstaller ==="
         echo "print('Hello from PyInstaller test')" > test_script.py
         pyinstaller --onefile test_script.py
-        echo "✓ PyInstaller basic test completed"
+        echo "[OK] PyInstaller basic test completed"
         if (Test-Path "dist\test_script.exe") {
-          echo "✅ test_script.exe created successfully"
+          echo "[SUCCESS] test_script.exe created successfully"
         } else {
-          echo "❌ test_script.exe not found"
+          echo "[ERROR] test_script.exe not found"
         }
     
     - name: Attempt DataCheck build
@@ -64,36 +64,36 @@ jobs:
       run: |
         echo "=== Build Results ==="
         if (Test-Path "dist") {
-          echo "📁 dist directory contents:"
+          echo "[FOLDER] dist directory contents:"
           dir dist
           
           if (Test-Path "dist\DataCheck-Test.exe") {
-            echo "✅ DataCheck-Test.exe created successfully"
+            echo "[SUCCESS] DataCheck-Test.exe created successfully"
             $size = (Get-Item "dist\DataCheck-Test.exe").Length / 1MB
-            echo "📦 Size: $($size.ToString('F1')) MB"
+            echo "[INFO] Size: $($size.ToString('F1')) MB"
             
             # Test the built executable
             echo ""
             echo "=== Testing built executable ==="
             try {
               $testResult = & "dist\DataCheck-Test.exe" --test-build 2>&1
-              echo "✅ Executable test output:"
+              echo "[SUCCESS] Executable test output:"
               echo $testResult
             }
             catch {
-              echo "❌ Executable test failed:"
+              echo "[ERROR] Executable test failed:"
               echo $_.Exception.Message
             }
           } else {
-            echo "❌ DataCheck-Test.exe not found"
+            echo "[ERROR] DataCheck-Test.exe not found"
           }
         } else {
-          echo "❌ dist directory not found"
+          echo "[ERROR] dist directory not found"
         }
         
         if (Test-Path "build") {
           echo ""
-          echo "📁 build directory contents:"
+          echo "[FOLDER] build directory contents:"
           dir build
         }
     
