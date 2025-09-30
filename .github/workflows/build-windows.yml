@@ -52,45 +52,67 @@ jobs:
     
     - name: Create PyInstaller spec file
       run: |
-        echo "Creating PyInstaller spec file..."
-        echo "# -*- mode: python ; coding: utf-8 -*- " > data_check.spec
-        echo "block_cipher = None" >> data_check.spec
-        echo "" >> data_check.spec
-        echo "a = Analysis(" >> data_check.spec
-        echo "    ['data_check.py']," >> data_check.spec
-        echo "    pathex=[]," >> data_check.spec
-        echo "    binaries=[]," >> data_check.spec
-        echo "    datas=[" >> data_check.spec
-        echo "        ('app_settings.json', '.')," >> data_check.spec
-        echo "        ('check_definitions.json', '.')," >> data_check.spec
-        echo "        ('input_file', 'input_file')," >> data_check.spec
-        echo "    ]," >> data_check.spec
-        echo "    hiddenimports=[" >> data_check.spec
-        echo "        'dekispart', 'innosite', 'dekispart_school', 'cloud'," >> data_check.spec
-        echo "        'tkinter', 'tkinter.ttk', 'tkinter.messagebox', 'tkinter.filedialog'," >> data_check.spec
-        echo "        'pandas', 'openpyxl', 'threading', 'datetime', 'json', 'os', 'sys', 'chardet'" >> data_check.spec
-        echo "    ]," >> data_check.spec
-        echo "    hookspath=[]," >> data_check.spec
-        echo "    runtime_hooks=[]," >> data_check.spec
-        echo "    excludes=[]," >> data_check.spec
-        echo "    cipher=block_cipher," >> data_check.spec
-        echo ")" >> data_check.spec
-        echo "" >> data_check.spec
-        echo "pyz = PYZ(a.pure, a.zipped_data, cipher=block_cipher)" >> data_check.spec
-        echo "" >> data_check.spec
-        echo "exe = EXE(" >> data_check.spec
-        echo "    pyz, a.scripts, a.binaries, a.zipfiles, a.datas, []," >> data_check.spec
-        echo "    name='DataCheck'," >> data_check.spec
-        echo "    debug=False," >> data_check.spec
-        echo "    bootloader_ignore_signals=False," >> data_check.spec
-        echo "    strip=False," >> data_check.spec
-        echo "    upx=False," >> data_check.spec
-        echo "    runtime_tmpdir=None," >> data_check.spec
-        echo "    console=False," >> data_check.spec
-        echo "    disable_windowed_traceback=False" >> data_check.spec
-        echo ")" >> data_check.spec
-        echo "Spec file created successfully"
-        echo "ALL MODULES IMPORTED SUCCESSFULLY"
+        Write-Host "Creating PyInstaller spec file..."
+        $datas = @(
+          "        ('app_settings.json', '.'),",
+          "        ('check_definitions.json', '.'),"
+        )
+        if (Test-Path "input_file") {
+          Write-Host "Including input_file directory in PyInstaller datas."
+          $datas += "        ('input_file', 'input_file'),"
+        } else {
+          Write-Host "input_file directory not found. Skipping from datas."
+        }
+
+        $hiddenImports = @(
+          "        'dekispart', 'innosite', 'dekispart_school', 'cloud',",
+          "        'tkinter', 'tkinter.ttk', 'tkinter.messagebox', 'tkinter.filedialog',",
+          "        'pandas', 'openpyxl', 'threading', 'datetime', 'json', 'os', 'sys', 'chardet'"
+        )
+
+        $specLines = @(
+          "# -*- mode: python ; coding: utf-8 -*- ",
+          "block_cipher = None",
+          "",
+          "a = Analysis(",
+          "    ['data_check.py'],",
+          "    pathex=[],",
+          "    binaries=[],",
+          "    datas=["
+        )
+
+        $specLines += $datas
+        $specLines += @(
+          "    ],",
+          "    hiddenimports=["
+        )
+        $specLines += $hiddenImports
+        $specLines += @(
+          "    ],",
+          "    hookspath=[],",
+          "    runtime_hooks=[],",
+          "    excludes=[],",
+          "    cipher=block_cipher,",
+          ")",
+          "",
+          "pyz = PYZ(a.pure, a.zipped_data, cipher=block_cipher)",
+          "",
+          "exe = EXE(",
+          "    pyz, a.scripts, a.binaries, a.zipfiles, a.datas, [],",
+          "    name='DataCheck',",
+          "    debug=False,",
+          "    bootloader_ignore_signals=False,",
+          "    strip=False,",
+          "    upx=False,",
+          "    runtime_tmpdir=None,",
+          "    console=False,",
+          "    disable_windowed_traceback=False",
+          ")"
+        )
+
+        Set-Content -Path data_check.spec -Value $specLines -Encoding UTF8
+        Write-Host "Spec file created successfully"
+        Write-Host "ALL MODULES IMPORTED SUCCESSFULLY"
     
     - name: Build EXE with PyInstaller
       env:
