@@ -24,17 +24,21 @@ for module_name in SERIES_MODULE_NAMES:
         else:
             missing_dependencies.add(error.name)
     except ImportError as error:
-        messagebox.showerror(
-            "モジュールエラー",
-            (
-                f"シリーズチェックモジュール '{module_name}' の読み込み中にエラーが発生しました。\n"
-                f"{error}\n\nアプリケーションを終了します。"
-            ),
-        )
+        # GUI環境でない場合は標準エラー出力へ、GUI環境では messagebox で表示
+        if os.environ.get('PYINSTALLER_BUILD') == '1' or os.environ.get('GITHUB_ACTIONS') == 'true':
+            print(f"シリーズチェックモジュール '{module_name}' の読み込み中にエラーが発生しました。\n{error}\nアプリケーションを終了します。", file=sys.stderr)
+        else:
+            messagebox.showerror(
+                "モジュールエラー",
+                (
+                    f"シリーズチェックモジュール '{module_name}' の読み込み中にエラーが発生しました。\n"
+                    f"{error}\n\nアプリケーションを終了します。"
+                ),
+            )
         sys.exit(1)
 
 if missing_series_modules or missing_dependencies:
-    if os.environ.get('PYINSTALLER_BUILD') != '1':
+    if os.environ.get('PYINSTALLER_BUILD') != '1' and os.environ.get('GITHUB_ACTIONS') != 'true':
         error_messages = []
         if missing_series_modules:
             file_list = "\n".join(f"  - {name}.py" for name in missing_series_modules)
@@ -57,9 +61,23 @@ if missing_series_modules or missing_dependencies:
         )
         sys.exit(1)
     else:
-        # PyInstallerビルド中はメッセージボックスを表示せず、エラーログを出力して終了
-        import sys
-        print("PyInstaller build: Suppressing module error messagebox.", file=sys.stderr)
+        # PyInstallerビルド中またはGitHub Actions環境ではメッセージボックスを表示せず、エラーログを出力して終了
+        error_messages = []
+        if missing_series_modules:
+            file_list = "\n".join(f"  - {name}.py" for name in missing_series_modules)
+            error_messages.append(
+                "以下のシリーズチェックモジュールが見つかりません。"
+                "同じディレクトリに配置されているか確認してください:\n"
+                f"{file_list}"
+            )
+        if missing_dependencies:
+            dep_list = "\n".join(f"  - {name}" for name in sorted(missing_dependencies))
+            install_hint = " pip install " + " ".join(sorted(missing_dependencies))
+            error_messages.append(
+                "以下の外部ライブラリが見つかりません:\n{dep_list}"
+            )
+        print("Build environment: Suppressing module error messagebox.", file=sys.stderr)
+        print("\n\n".join(error_messages), file=sys.stderr)
         sys.exit(1)
 
 class DataCheckerApp:
@@ -1241,29 +1259,52 @@ if __name__ == "__main__":
         "chardet": "pip install chardet",   # ファイルエンコーディング自動判別に便利
     }
 
-    # --help 引数がある場合はGUIを起動せずにヘルプを表示して終了
+    # --help または --test-build 引数がある場合はGUIを起動せずに適切に処理して終了
     if "--help" in sys.argv:
         print("Usage: DataCheck.exe [options]")
         print("Options:")
         print("  --help     Show this help message and exit.")
+        print("  --test-build    Test build mode for CI/CD systems.")
         print("  (No other command-line options are currently supported for headless execution.)")
         sys.exit(0)
+    
+    if "--test-build" in sys.argv:
+        print("DataCheck test build mode: Checking module imports and dependencies...")
+        # 必要なライブラリが利用可能かテスト
+        missing_libs = []
+        for lib, install_cmd in required_libraries.items():
+            try:
+                __import__(lib)
+                print(f"✅ {lib}: OK")
+            except ImportError:
+                missing_libs.append(lib)
+                print(f"❌ {lib}: Missing")
+        
+        if missing_libs:
+            print(f"Missing libraries: {', '.join(missing_libs)}")
+            sys.exit(1)
+        else:
+            print("✅ All dependencies satisfied")
+            print("✅ Test build completed successfully")
+            sys.exit(0)
 
     for lib, install_cmd in required_libraries.items():
         try:
             __import__(lib)
         except ImportError:
-            if os.environ.get('PYINSTALLER_BUILD') != '1':
+            # GUI環境でない場合は標準エラー出力へ、GUI環境では messagebox で表示
+            if os.environ.get('PYINSTALLER_BUILD') == '1' or os.environ.get('GITHUB_ACTIONS') == 'true':
+                print(f"'{lib}' がインストールされていません。\n"
+                      f"コマンドプロンプトやターミナルで以下のコマンドを実行してインストールしてください:\n"
+                      f"'{install_cmd}'\n"
+                      f"アプリケーションを終了します。", file=sys.stderr)
+            else:
                 messagebox.showerror("ライブラリ不足エラー",
                                      f"'{lib}' がインストールされていません。\n\n"
                                      f"コマンドプロンプトやターミナルで以下のコマンドを実行してインストールしてください:\n"
                                      f"'{install_cmd}'\n\n"
                                      f"アプリケーションを終了します。")
-                sys.exit(1)
-            else:
-                import sys
-                print(f"PyInstaller build: Suppressing missing library messagebox for {lib}.", file=sys.stderr)
-                sys.exit(1)
+            sys.exit(1)
 
     root = tk.Tk()
     app = DataCheckerApp(root)
