@@ -49,9 +49,11 @@ jobs:
         if (Test-Path "input_file") { echo "OK input_file directory" } else { echo "MISSING input_file directory"; exit 1 }
         if (Test-Path "config.ini") { echo "OK config.ini (optional)" } else { echo "WARNING config.ini not found, will be included separately" }
         echo "File check completed"
+    
+    - name: Create PyInstaller spec file
       run: |
         echo "Creating PyInstaller spec file..."
-        echo "# -*- mode: python ; coding: utf-8 -*-" > data_check.spec
+        echo "# -*- mode: python ; coding: utf-8 -*- " > data_check.spec
         echo "block_cipher = None" >> data_check.spec
         echo "" >> data_check.spec
         echo "a = Analysis(" >> data_check.spec
