@@ -216,6 +216,16 @@ jobs:
           dist/
           app_settings.json
           check_definitions.json
+          config.ini
+          input_file/
+          dekispart.py
+          innosite.py
+          dekispart_school.py
+          cloud.py
+          data_check.py
+          DISTRIBUTION_README.md
+          QUICK_START.md
+          README.md
         retention-days: 30
         
     - name: Upload debug info on failure
