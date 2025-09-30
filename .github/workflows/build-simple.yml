@@ -1,0 +1,122 @@
+name: Build Windows EXE - Simple Test
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+    paths: [ '.github/workflows/build-simple.yml' ]
+
+jobs:
+  build-windows-exe:
+    runs-on: windows-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install pyinstaller pandas openpyxl pyodbc pymysql
+    
+    - name: Test basic functionality
+      run: |
+        echo "=== Environment Check ==="
+        python --version
+        python -c "import tkinter; print('OK tkinter')"
+        python -c "import pandas; print('OK pandas')"
+        python -c "import openpyxl; print('OK openpyxl')"
+        echo "=== Required Files ==="
+        if (Test-Path "app_settings.json") { echo "OK app_settings.json" }
+        if (Test-Path "check_definitions.json") { echo "OK check_definitions.json" }
+    
+    - name: Create minimal spec file
+      run: |
+        echo "Creating minimal spec file for testing..."
+        echo "# -*- mode: python ; coding: utf-8 -*-" > data_check.spec
+        echo "block_cipher = None" >> data_check.spec
+        echo "" >> data_check.spec
+        echo "a = Analysis(" >> data_check.spec
+        echo "    ['data_check.py']," >> data_check.spec
+        echo "    pathex=[]," >> data_check.spec
+        echo "    binaries=[]," >> data_check.spec
+        echo "    datas=[" >> data_check.spec
+        echo "        ('app_settings.json', '.')," >> data_check.spec
+        echo "        ('check_definitions.json', '.')," >> data_check.spec
+        echo "    ]," >> data_check.spec
+        echo "    hiddenimports=[" >> data_check.spec
+        echo "        'dekispart', 'innosite', 'dekispart_school', 'cloud'," >> data_check.spec
+        echo "        'tkinter', 'tkinter.ttk', 'tkinter.messagebox', 'tkinter.filedialog'," >> data_check.spec
+        echo "        'pandas', 'openpyxl'" >> data_check.spec
+        echo "    ]," >> data_check.spec
+        echo "    hookspath=[]," >> data_check.spec
+        echo "    runtime_hooks=[]," >> data_check.spec
+        echo "    excludes=[]," >> data_check.spec
+        echo "    cipher=block_cipher," >> data_check.spec
+        echo ")" >> data_check.spec
+        echo "" >> data_check.spec
+        echo "pyz = PYZ(a.pure, a.zipped_data, cipher=block_cipher)" >> data_check.spec
+        echo "" >> data_check.spec
+        echo "exe = EXE(" >> data_check.spec
+        echo "    pyz, a.scripts, a.binaries, a.zipfiles, a.datas, []," >> data_check.spec
+        echo "    name='DataCheck'," >> data_check.spec
+        echo "    debug=False," >> data_check.spec
+        echo "    bootloader_ignore_signals=False," >> data_check.spec
+        echo "    strip=False," >> data_check.spec
+        echo "    upx=False," >> data_check.spec
+        echo "    runtime_tmpdir=None," >> data_check.spec
+        echo "    console=True," >> data_check.spec
+        echo "    disable_windowed_traceback=False" >> data_check.spec
+        echo ")" >> data_check.spec
+        echo "Minimal spec file created"
+    
+    - name: Build EXE with PyInstaller
+      run: |
+        echo "=== Building DataCheck.exe ==="
+        pyinstaller data_check.spec --clean --noconfirm
+    
+    - name: Verify build results
+      run: |
+        echo "=== Build Results ==="
+        if (Test-Path "dist") {
+          echo "dist directory contents:"
+          Get-ChildItem dist | Format-Table Name, Length
+          
+          if (Test-Path "dist\DataCheck.exe") {
+            $size = (Get-Item "dist\DataCheck.exe").Length / 1MB
+            Write-Host "SUCCESS: DataCheck.exe created successfully"
+            Write-Host "Size: $($size.ToString('F2')) MB"
+          } else {
+            Write-Host "ERROR: DataCheck.exe not found"
+            exit 1
+          }
+        } else {
+          echo "ERROR: dist directory not created"
+          exit 1
+        }
+    
+    - name: Upload build results
+      uses: actions/upload-artifact@v4
+      if: success()
+      with:
+        name: DataCheck-Windows-Simple
+        path: |
+          dist/DataCheck.exe
+          app_settings.json
+          check_definitions.json
+        retention-days: 30
+        
+    - name: Upload debug info on failure
+      uses: actions/upload-artifact@v4
+      if: failure()
+      with:
+        name: Build-Debug-Info
+        path: |
+          build/
+          data_check.spec
+        retention-days: 7
