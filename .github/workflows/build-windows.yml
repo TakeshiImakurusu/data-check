@@ -91,6 +91,8 @@ jobs:
         echo "ALL MODULES IMPORTED SUCCESSFULLY"
     
     - name: Build EXE with PyInstaller
+      env:
+        PYINSTALLER_BUILD: 1
       run: |
         echo "=== Building DataCheck.exe ==="
         pyinstaller data_check.spec --clean --noconfirm

@@ -34,27 +34,33 @@ for module_name in SERIES_MODULE_NAMES:
         sys.exit(1)
 
 if missing_series_modules or missing_dependencies:
-    error_messages = []
-    if missing_series_modules:
-        file_list = "\n".join(f"  - {name}.py" for name in missing_series_modules)
-        error_messages.append(
-            "以下のシリーズチェックモジュールが見つかりません。"
-            "同じディレクトリに配置されているか確認してください:\n"
-            f"{file_list}"
-        )
-    if missing_dependencies:
-        dep_list = "\n".join(f"  - {name}" for name in sorted(missing_dependencies))
-        install_hint = " pip install " + " ".join(sorted(missing_dependencies))
-        error_messages.append(
-            "以下の外部ライブラリが見つかりません。仮想環境を有効化した上で"
-            f"{install_hint} を実行してください:\n{dep_list}"
-        )
+    if os.environ.get('PYINSTALLER_BUILD') != '1':
+        error_messages = []
+        if missing_series_modules:
+            file_list = "\n".join(f"  - {name}.py" for name in missing_series_modules)
+            error_messages.append(
+                "以下のシリーズチェックモジュールが見つかりません。"
+                "同じディレクトリに配置されているか確認してください:\n"
+                f"{file_list}"
+            )
+        if missing_dependencies:
+            dep_list = "\n".join(f"  - {name}" for name in sorted(missing_dependencies))
+            install_hint = " pip install " + " ".join(sorted(missing_dependencies))
+            error_messages.append(
+                "以下の外部ライブラリが見つかりません。仮想環境を有効化した上で"
+                f"{install_hint} を実行してください:\n{dep_list}"
+            )
 
-    messagebox.showerror(
-        "モジュールエラー",
-        "\n\n".join(error_messages) + "\n\nアプリケーションを終了します。",
-    )
-    sys.exit(1)
+        messagebox.showerror(
+            "モジュールエラー",
+            "\n\n".join(error_messages) + "\n\nアプリケーションを終了します。",
+        )
+        sys.exit(1)
+    else:
+        # PyInstallerビルド中はメッセージボックスを表示せず、エラーログを出力して終了
+        import sys
+        print("PyInstaller build: Suppressing module error messagebox.", file=sys.stderr)
+        sys.exit(1)
 
 class DataCheckerApp:
     def __init__(self, master):
@@ -1239,12 +1245,17 @@ if __name__ == "__main__":
         try:
             __import__(lib)
         except ImportError:
-            messagebox.showerror("ライブラリ不足エラー",
-                                 f"'{lib}' がインストールされていません。\n\n"
-                                 f"コマンドプロンプトやターミナルで以下のコマンドを実行してインストールしてください:\n"
-                                 f"'{install_cmd}'\n\n"
-                                 f"アプリケーションを終了します。")
-            sys.exit(1)
+            if os.environ.get('PYINSTALLER_BUILD') != '1':
+                messagebox.showerror("ライブラリ不足エラー",
+                                     f"'{lib}' がインストールされていません。\n\n"
+                                     f"コマンドプロンプトやターミナルで以下のコマンドを実行してインストールしてください:\n"
+                                     f"'{install_cmd}'\n\n"
+                                     f"アプリケーションを終了します。")
+                sys.exit(1)
+            else:
+                import sys
+                print(f"PyInstaller build: Suppressing missing library messagebox for {lib}.", file=sys.stderr)
+                sys.exit(1)
 
     root = tk.Tk()
     app = DataCheckerApp(root)
