@@ -1241,6 +1241,14 @@ if __name__ == "__main__":
         "chardet": "pip install chardet",   # ファイルエンコーディング自動判別に便利
     }
 
+    # --help 引数がある場合はGUIを起動せずにヘルプを表示して終了
+    if "--help" in sys.argv:
+        print("Usage: DataCheck.exe [options]")
+        print("Options:")
+        print("  --help     Show this help message and exit.")
+        print("  (No other command-line options are currently supported for headless execution.)")
+        sys.exit(0)
+
     for lib, install_cmd in required_libraries.items():
         try:
             __import__(lib)
