@@ -22,7 +22,7 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install pyinstaller pandas openpyxl pyodbc pymysql python-dateutil
+        pip install pyinstaller pandas openpyxl pyodbc pymysql python-dateutil chardet
     
     - name: Test basic Python functionality
       run: |
@@ -62,11 +62,12 @@ jobs:
         echo "    datas=[" >> data_check.spec
         echo "        ('app_settings.json', '.')," >> data_check.spec
         echo "        ('check_definitions.json', '.')," >> data_check.spec
+        echo "        ('input_file', 'input_file')," >> data_check.spec
         echo "    ]," >> data_check.spec
         echo "    hiddenimports=[" >> data_check.spec
         echo "        'dekispart', 'innosite', 'dekispart_school', 'cloud'," >> data_check.spec
         echo "        'tkinter', 'tkinter.ttk', 'tkinter.messagebox', 'tkinter.filedialog'," >> data_check.spec
-        echo "        'pandas', 'openpyxl', 'threading', 'datetime', 'json', 'os', 'sys'" >> data_check.spec
+        echo "        'pandas', 'openpyxl', 'threading', 'datetime', 'json', 'os', 'sys', 'chardet'" >> data_check.spec
         echo "    ]," >> data_check.spec
         echo "    hookspath=[]," >> data_check.spec
         echo "    runtime_hooks=[]," >> data_check.spec
@@ -96,7 +97,7 @@ jobs:
       run: |
         echo "=== Building DataCheck.exe ==="
         pyinstaller data_check.spec --clean --noconfirm
-    
+
     - name: Check build results and test EXE
       run: |
         echo "=== Build Results ==="
@@ -126,18 +127,28 @@ jobs:
           echo "ERROR: dist directory not created"
           exit 1
         }
-    
+
+    - name: Prepare distribution package
+      run: |
+        Write-Host "Preparing release package..."
+        if (Test-Path "release_package") {
+          Remove-Item -Recurse -Force release_package
+        }
+        New-Item -ItemType Directory -Force -Path release_package | Out-Null
+        Copy-Item "dist\DataCheck.exe" "release_package\" -Force
+        if (Test-Path "app_settings.json") { Copy-Item "app_settings.json" "release_package\" -Force }
+        if (Test-Path "check_definitions.json") { Copy-Item "check_definitions.json" "release_package\" -Force }
+        if (Test-Path "config.ini") { Copy-Item "config.ini" "release_package\" -Force }
+        if (Test-Path "input_file") { Copy-Item "input_file" "release_package\input_file" -Recurse -Force }
+        if (Test-Path "DISTRIBUTION_README.md") { Copy-Item "DISTRIBUTION_README.md" "release_package\" -Force }
+        Write-Host "Release package prepared in release_package/"
+
     - name: Upload Windows EXE Artifact
       uses: actions/upload-artifact@v4
       if: success()
       with:
         name: DataCheck-Windows-Distribution
-        path: |
-          dist/DataCheck.exe
-          app_settings.json
-          check_definitions.json
-          config.ini
-          DISTRIBUTION_README.md
+        path: release_package/**
         retention-days: 30
         
     - name: Upload build logs on failure
