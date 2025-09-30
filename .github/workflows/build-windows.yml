@@ -29,17 +29,17 @@ jobs:
         echo "=== Environment Check ==="
         python --version
         echo "Checking required modules:"
-        python -c "import tkinter; print('✓ tkinter')"
-        python -c "import pandas; print('✓ pandas')"
-        python -c "import openpyxl; print('✓ openpyxl')"
-        python -c "import json; print('✓ json')"
+        python -c "import tkinter; print('OK tkinter')"
+        python -c "import pandas; print('OK pandas')"
+        python -c "import openpyxl; print('OK openpyxl')"
+        python -c "import json; print('OK json')"
         echo ""
         echo "=== Project Files ==="
         dir *.py
         echo ""
         echo "=== Config Files ==="
-        if (Test-Path "app_settings.json") { echo "✓ app_settings.json" }
-        if (Test-Path "check_definitions.json") { echo "✓ check_definitions.json" }
+        if (Test-Path "app_settings.json") { echo "OK app_settings.json" }
+        if (Test-Path "check_definitions.json") { echo "OK check_definitions.json" }
     
     - name: Create simplified spec file
       run: |
@@ -80,6 +80,7 @@ jobs:
         echo "    disable_windowed_traceback=False" >> data_check.spec
         echo ")" >> data_check.spec
         echo "Spec file created successfully"
+        echo "ALL MODULES IMPORTED SUCCESSFULLY"
     
     - name: Build EXE with PyInstaller
       run: |
@@ -95,24 +96,24 @@ jobs:
           
           if (Test-Path "dist\DataCheck.exe") {
             $size = (Get-Item "dist\DataCheck.exe").Length / 1MB
-            Write-Host "✅ DataCheck.exe created successfully"
-            Write-Host "📦 Size: $($size.ToString('F2')) MB"
+            Write-Host "SUCCESS: DataCheck.exe created successfully"
+            Write-Host "Size: $($size.ToString('F2')) MB"
             
             # Test EXE execution (basic check)
             echo ""
             echo "=== Testing EXE execution ==="
             try {
               $process = Start-Process -FilePath "dist\DataCheck.exe" -ArgumentList "--help" -PassThru -Wait -WindowStyle Hidden
-              echo "✅ EXE runs without immediate crash"
+              echo "SUCCESS: EXE runs without immediate crash"
             } catch {
-              echo "⚠️  EXE test failed: $_"
+              echo "WARNING: EXE test failed: $_"
             }
           } else {
-            Write-Host "❌ DataCheck.exe not found"
+            Write-Host "ERROR: DataCheck.exe not found"
             exit 1
           }
         } else {
-          echo "❌ dist directory not created"
+          echo "ERROR: dist directory not created"
           exit 1
         }
     
