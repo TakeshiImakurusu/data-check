@@ -54,7 +54,8 @@ jobs:
         echo "=== Attempting main application build ==="
         
         # Simple spec file for testing
-        echo "# -*- mode: python ; coding: utf-8 -*-
+        cat <<EOF > data_check_test.spec
+# -*- mode: python ; coding: utf-8 -*-
 block_cipher = None
 
 a = Analysis(
@@ -97,7 +98,8 @@ exe = EXE(
     runtime_tmpdir=None,
     console=True,
     disable_windowed_traceback=False,
-)\" > data_check_test.spec
+)
+EOF
 pyinstaller data_check_test.spec --clean --noconfirm        
     - name: Check build results
       run: |
