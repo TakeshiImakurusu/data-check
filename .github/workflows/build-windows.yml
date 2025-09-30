@@ -54,6 +54,8 @@ jobs:
         echo "    datas=[" >> data_check.spec
         echo "        ('app_settings.json', '.')," >> data_check.spec
         echo "        ('check_definitions.json', '.')," >> data_check.spec
+        echo "        ('config.ini', '.')," >> data_check.spec
+        echo "        ('input_file', 'input_file')," >> data_check.spec
         echo "    ]," >> data_check.spec
         echo "    hiddenimports=[" >> data_check.spec
         echo "        'dekispart', 'innosite', 'dekispart_school', 'cloud'," >> data_check.spec
@@ -121,8 +123,14 @@ jobs:
       uses: actions/upload-artifact@v4
       if: success()
       with:
-        name: DataCheck-Windows-EXE
-        path: dist/DataCheck.exe
+        name: DataCheck-Windows-Distribution
+        path: |
+          dist/DataCheck.exe
+          app_settings.json
+          check_definitions.json
+          config.ini
+          input_file/
+          DISTRIBUTION_README.md
         retention-days: 30
         
     - name: Upload build logs on failure
