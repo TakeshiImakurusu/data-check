@@ -97,7 +97,7 @@ exe = EXE(
     runtime_tmpdir=None,
     console=True,
     disable_windowed_traceback=False,
-)" > data_check_test.spec
+)\" > data_check_test.spec
         
         pyinstaller data_check_test.spec --clean --noconfirm
         
