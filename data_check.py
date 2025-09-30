@@ -8,6 +8,44 @@ import sys
 import json
 import datetime
 
+# 早期の引数チェック - GUI初期化やモジュールインポートの前に実行
+if __name__ == "__main__":
+    # --help または --test-build 引数がある場合はGUIを起動せずに適切に処理して終了
+    if "--help" in sys.argv:
+        print("Usage: DataCheck.exe [options]")
+        print("Options:")
+        print("  --help     Show this help message and exit.")
+        print("  --test-build    Test build mode for CI/CD systems.")
+        print("  (No other command-line options are currently supported for headless execution.)")
+        sys.exit(0)
+    
+    if "--test-build" in sys.argv:
+        print("DataCheck test build mode: Checking module imports and dependencies...")
+        # 必要なライブラリのチェック
+        required_libraries = {
+            "pyodbc": "pip install pyodbc",
+            "pandas": "pip install pandas",
+            "openpyxl": "pip install openpyxl",
+            "chardet": "pip install chardet",
+        }
+        
+        missing_libs = []
+        for lib, install_cmd in required_libraries.items():
+            try:
+                __import__(lib)
+                print(f"✅ {lib}: OK")
+            except ImportError:
+                missing_libs.append(lib)
+                print(f"❌ {lib}: Missing")
+        
+        if missing_libs:
+            print(f"Missing libraries: {', '.join(missing_libs)}")
+            sys.exit(1)
+        else:
+            print("✅ All dependencies satisfied")
+            print("✅ Test build completed successfully")
+            sys.exit(0)
+
 # 各シリーズのチェックロジックをインポート
 # これらのモジュールは、main_checker_app.py と同じディレクトリに配置されている必要があります。
 SERIES_MODULE_NAMES = ["dekispart", "innosite", "dekispart_school", "cloud"]
@@ -1258,35 +1296,6 @@ if __name__ == "__main__":
         "openpyxl": "pip install openpyxl", # Excelファイルの読み書きに必要
         "chardet": "pip install chardet",   # ファイルエンコーディング自動判別に便利
     }
-
-    # --help または --test-build 引数がある場合はGUIを起動せずに適切に処理して終了
-    if "--help" in sys.argv:
-        print("Usage: DataCheck.exe [options]")
-        print("Options:")
-        print("  --help     Show this help message and exit.")
-        print("  --test-build    Test build mode for CI/CD systems.")
-        print("  (No other command-line options are currently supported for headless execution.)")
-        sys.exit(0)
-    
-    if "--test-build" in sys.argv:
-        print("DataCheck test build mode: Checking module imports and dependencies...")
-        # 必要なライブラリが利用可能かテスト
-        missing_libs = []
-        for lib, install_cmd in required_libraries.items():
-            try:
-                __import__(lib)
-                print(f"✅ {lib}: OK")
-            except ImportError:
-                missing_libs.append(lib)
-                print(f"❌ {lib}: Missing")
-        
-        if missing_libs:
-            print(f"Missing libraries: {', '.join(missing_libs)}")
-            sys.exit(1)
-        else:
-            print("✅ All dependencies satisfied")
-            print("✅ Test build completed successfully")
-            sys.exit(0)
 
     for lib, install_cmd in required_libraries.items():
         try:
