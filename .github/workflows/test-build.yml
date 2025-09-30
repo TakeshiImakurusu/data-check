@@ -22,7 +22,7 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install pyinstaller pandas openpyxl pyodbc pymysql configparser
+        pip install pyinstaller pandas openpyxl pyodbc pymysql configparser chardet
     
     - name: List files
       run: |

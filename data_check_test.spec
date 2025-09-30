@@ -12,7 +12,7 @@ a = Analysis(
     hiddenimports=[
         'dekispart', 'innosite', 'dekispart_school', 'cloud',
         'tkinter', 'tkinter.ttk', 'tkinter.messagebox', 'tkinter.filedialog',
-        'pandas', 'openpyxl', 'configparser'
+        'pandas', 'openpyxl', 'configparser', 'chardet'
     ],
     hookspath=[],
     runtime_hooks=[],
