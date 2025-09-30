@@ -162,6 +162,11 @@ jobs:
         if (Test-Path "app_settings.json") { Copy-Item "app_settings.json" "release_package\" -Force }
         if (Test-Path "check_definitions.json") { Copy-Item "check_definitions.json" "release_package\" -Force }
         if (Test-Path "config.ini") { Copy-Item "config.ini" "release_package\" -Force }
+        @('dekispart.py', 'cloud.py', 'innosite.py', 'dekispart_school.py') | ForEach-Object {
+          if (Test-Path $_) {
+            Copy-Item $_ "release_package\" -Force
+          }
+        }
         if (Test-Path "input_file") {
           Write-Host "Copying input_file directory..."
           New-Item -ItemType Directory -Force -Path "release_package\input_file" | Out-Null
