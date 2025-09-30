@@ -22,7 +22,7 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install pyinstaller pandas openpyxl pyodbc pymysql
+        pip install pyinstaller pandas openpyxl pyodbc pymysql chardet python-dateutil configparser
     
     - name: Test basic functionality
       run: |
@@ -35,11 +35,19 @@ jobs:
         if (Test-Path "app_settings.json") { echo "OK app_settings.json" }
         if (Test-Path "check_definitions.json") { echo "OK check_definitions.json" }
     
-    - name: Create minimal spec file
+    - name: Create comprehensive spec file
       run: |
-        echo "Creating minimal spec file for testing..."
+        echo "Creating comprehensive spec file with all dependencies..."
         echo "# -*- mode: python ; coding: utf-8 -*-" > data_check.spec
+        echo "from PyInstaller.utils.hooks import collect_submodules, collect_data_files" >> data_check.spec
+        echo "import os" >> data_check.spec
+        echo "" >> data_check.spec
         echo "block_cipher = None" >> data_check.spec
+        echo "" >> data_check.spec
+        echo "# Collect all pandas and related modules" >> data_check.spec
+        echo "pandas_modules = collect_submodules('pandas')" >> data_check.spec
+        echo "openpyxl_modules = collect_submodules('openpyxl')" >> data_check.spec
+        echo "dateutil_modules = collect_submodules('dateutil')" >> data_check.spec
         echo "" >> data_check.spec
         echo "a = Analysis(" >> data_check.spec
         echo "    ['data_check.py']," >> data_check.spec
@@ -50,13 +58,30 @@ jobs:
         echo "        ('check_definitions.json', '.')," >> data_check.spec
         echo "    ]," >> data_check.spec
         echo "    hiddenimports=[" >> data_check.spec
+        echo "        # Application modules" >> data_check.spec
         echo "        'dekispart', 'innosite', 'dekispart_school', 'cloud'," >> data_check.spec
+        echo "        # GUI modules" >> data_check.spec
         echo "        'tkinter', 'tkinter.ttk', 'tkinter.messagebox', 'tkinter.filedialog'," >> data_check.spec
-        echo "        'pandas', 'openpyxl'" >> data_check.spec
-        echo "    ]," >> data_check.spec
+        echo "        # Data processing" >> data_check.spec
+        echo "        'pandas', 'openpyxl', 'chardet'," >> data_check.spec
+        echo "        # Database connectivity" >> data_check.spec
+        echo "        'pyodbc', 'pymysql'," >> data_check.spec
+        echo "        # Date/time handling" >> data_check.spec
+        echo "        'dateutil', 'dateutil.relativedelta', 'datetime'," >> data_check.spec
+        echo "        # Configuration and utilities" >> data_check.spec
+        echo "        'configparser', 'json', 'os', 'sys', 'threading'," >> data_check.spec
+        echo "        'importlib', 'traceback', 'logging'," >> data_check.spec
+        echo "        # Pandas internals" >> data_check.spec
+        echo "        'pandas._libs', 'pandas._libs.tslibs'," >> data_check.spec
+        echo "        'pandas._libs.tslibs.base', 'pandas._libs.tslibs.timedeltas'," >> data_check.spec
+        echo "        'pandas.io', 'pandas.io.excel', 'pandas.io.common'," >> data_check.spec
+        echo "        # OpenPyXL internals" >> data_check.spec
+        echo "        'openpyxl.cell', 'openpyxl.cell._writer'," >> data_check.spec
+        echo "        'openpyxl.workbook', 'openpyxl.worksheet'" >> data_check.spec
+        echo "    ] + pandas_modules + openpyxl_modules + dateutil_modules," >> data_check.spec
         echo "    hookspath=[]," >> data_check.spec
         echo "    runtime_hooks=[]," >> data_check.spec
-        echo "    excludes=[]," >> data_check.spec
+        echo "    excludes=['matplotlib', 'scipy', 'IPython', 'pytest', 'numpy.testing']," >> data_check.spec
         echo "    cipher=block_cipher," >> data_check.spec
         echo ")" >> data_check.spec
         echo "" >> data_check.spec
@@ -73,7 +98,7 @@ jobs:
         echo "    console=True," >> data_check.spec
         echo "    disable_windowed_traceback=False" >> data_check.spec
         echo ")" >> data_check.spec
-        echo "Minimal spec file created"
+        echo "Comprehensive spec file created with all dependencies"
     
     - name: Build EXE with PyInstaller
       run: |
@@ -104,7 +129,7 @@ jobs:
       uses: actions/upload-artifact@v4
       if: success()
       with:
-        name: DataCheck-Windows-Simple
+        name: DataCheck-Windows-Complete
         path: |
           dist/DataCheck.exe
           app_settings.json
