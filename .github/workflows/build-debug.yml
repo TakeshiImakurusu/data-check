@@ -1,0 +1,229 @@
+name: Build Windows EXE - Debug Version
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+    paths: [ '.github/workflows/build-debug.yml' ]
+
+jobs:
+  build-windows-exe:
+    runs-on: windows-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install pyinstaller pandas openpyxl pyodbc pymysql chardet python-dateutil configparser
+    
+    - name: Test basic functionality
+      run: |
+        echo "=== Environment Check ==="
+        python --version
+        python -c "import tkinter; print('OK tkinter')"
+        python -c "import pandas; print('OK pandas')"
+        python -c "import openpyxl; print('OK openpyxl')"
+        python -c "import chardet; print('OK chardet')"
+        echo "=== Required Files ==="
+        if (Test-Path "app_settings.json") { echo "OK app_settings.json" }
+        if (Test-Path "check_definitions.json") { echo "OK check_definitions.json" }
+    
+    - name: Create debug spec file
+      run: |
+        echo "Creating debug spec file with console for error visibility..."
+        echo "# -*- mode: python ; coding: utf-8 -*-" > data_check_debug.spec
+        echo "from PyInstaller.utils.hooks import collect_submodules, collect_data_files" >> data_check_debug.spec
+        echo "import os" >> data_check_debug.spec
+        echo "" >> data_check_debug.spec
+        echo "block_cipher = None" >> data_check_debug.spec
+        echo "" >> data_check_debug.spec
+        echo "# Collect all pandas and related modules" >> data_check_debug.spec
+        echo "pandas_modules = collect_submodules('pandas')" >> data_check_debug.spec
+        echo "openpyxl_modules = collect_submodules('openpyxl')" >> data_check_debug.spec
+        echo "dateutil_modules = collect_submodules('dateutil')" >> data_check_debug.spec
+        echo "" >> data_check_debug.spec
+        echo "a = Analysis(" >> data_check_debug.spec
+        echo "    ['data_check.py']," >> data_check_debug.spec
+        echo "    pathex=[]," >> data_check_debug.spec
+        echo "    binaries=[]," >> data_check_debug.spec
+        echo "    datas=[" >> data_check_debug.spec
+        echo "        ('app_settings.json', '.')," >> data_check_debug.spec
+        echo "        ('check_definitions.json', '.')," >> data_check_debug.spec
+        echo "    ]," >> data_check_debug.spec
+        echo "    hiddenimports=[" >> data_check_debug.spec
+        echo "        # Application modules" >> data_check_debug.spec
+        echo "        'dekispart', 'innosite', 'dekispart_school', 'cloud'," >> data_check_debug.spec
+        echo "        # GUI modules" >> data_check_debug.spec
+        echo "        'tkinter', 'tkinter.ttk', 'tkinter.messagebox', 'tkinter.filedialog'," >> data_check_debug.spec
+        echo "        # Data processing" >> data_check_debug.spec
+        echo "        'pandas', 'openpyxl', 'chardet'," >> data_check_debug.spec
+        echo "        # Database connectivity" >> data_check_debug.spec
+        echo "        'pyodbc', 'pymysql'," >> data_check_debug.spec
+        echo "        # Date/time handling" >> data_check_debug.spec
+        echo "        'dateutil', 'dateutil.relativedelta', 'datetime'," >> data_check_debug.spec
+        echo "        # Configuration and utilities" >> data_check_debug.spec
+        echo "        'configparser', 'json', 'os', 'sys', 'threading'," >> data_check_debug.spec
+        echo "        'importlib', 'traceback', 'logging'," >> data_check_debug.spec
+        echo "        # Pandas internals" >> data_check_debug.spec
+        echo "        'pandas._libs', 'pandas._libs.tslibs'," >> data_check_debug.spec
+        echo "        'pandas._libs.tslibs.base', 'pandas._libs.tslibs.timedeltas'," >> data_check_debug.spec
+        echo "        'pandas.io', 'pandas.io.excel', 'pandas.io.common'," >> data_check_debug.spec
+        echo "        # OpenPyXL internals" >> data_check_debug.spec
+        echo "        'openpyxl.cell', 'openpyxl.cell._writer'," >> data_check_debug.spec
+        echo "        'openpyxl.workbook', 'openpyxl.worksheet'" >> data_check_debug.spec
+        echo "    ] + pandas_modules + openpyxl_modules + dateutil_modules," >> data_check_debug.spec
+        echo "    hookspath=[]," >> data_check_debug.spec
+        echo "    runtime_hooks=[]," >> data_check_debug.spec
+        echo "    excludes=['matplotlib', 'scipy', 'IPython', 'pytest', 'numpy.testing']," >> data_check_debug.spec
+        echo "    cipher=block_cipher," >> data_check_debug.spec
+        echo ")" >> data_check_debug.spec
+        echo "" >> data_check_debug.spec
+        echo "pyz = PYZ(a.pure, a.zipped_data, cipher=block_cipher)" >> data_check_debug.spec
+        echo "" >> data_check_debug.spec
+        echo "exe = EXE(" >> data_check_debug.spec
+        echo "    pyz, a.scripts, a.binaries, a.zipfiles, a.datas, []," >> data_check_debug.spec
+        echo "    name='DataCheck-Debug'," >> data_check_debug.spec
+        echo "    debug=True," >> data_check_debug.spec
+        echo "    bootloader_ignore_signals=False," >> data_check_debug.spec
+        echo "    strip=False," >> data_check_debug.spec
+        echo "    upx=False," >> data_check_debug.spec
+        echo "    runtime_tmpdir=None," >> data_check_debug.spec
+        echo "    console=True," >> data_check_debug.spec
+        echo "    disable_windowed_traceback=False" >> data_check_debug.spec
+        echo ")" >> data_check_debug.spec
+        echo "Debug spec file created with console enabled"
+    
+    - name: Create no-console spec file
+      run: |
+        echo "Creating no-console spec file for production use..."
+        echo "# -*- mode: python ; coding: utf-8 -*-" > data_check_noconsole.spec
+        echo "from PyInstaller.utils.hooks import collect_submodules, collect_data_files" >> data_check_noconsole.spec
+        echo "import os" >> data_check_noconsole.spec
+        echo "" >> data_check_noconsole.spec
+        echo "block_cipher = None" >> data_check_noconsole.spec
+        echo "" >> data_check_noconsole.spec
+        echo "# Collect all pandas and related modules" >> data_check_noconsole.spec
+        echo "pandas_modules = collect_submodules('pandas')" >> data_check_noconsole.spec
+        echo "openpyxl_modules = collect_submodules('openpyxl')" >> data_check_noconsole.spec
+        echo "dateutil_modules = collect_submodules('dateutil')" >> data_check_noconsole.spec
+        echo "" >> data_check_noconsole.spec
+        echo "a = Analysis(" >> data_check_noconsole.spec
+        echo "    ['data_check.py']," >> data_check_noconsole.spec
+        echo "    pathex=[]," >> data_check_noconsole.spec
+        echo "    binaries=[]," >> data_check_noconsole.spec
+        echo "    datas=[" >> data_check_noconsole.spec
+        echo "        ('app_settings.json', '.')," >> data_check_noconsole.spec
+        echo "        ('check_definitions.json', '.')," >> data_check_noconsole.spec
+        echo "    ]," >> data_check_noconsole.spec
+        echo "    hiddenimports=[" >> data_check_noconsole.spec
+        echo "        # Application modules" >> data_check_noconsole.spec
+        echo "        'dekispart', 'innosite', 'dekispart_school', 'cloud'," >> data_check_noconsole.spec
+        echo "        # GUI modules" >> data_check_noconsole.spec
+        echo "        'tkinter', 'tkinter.ttk', 'tkinter.messagebox', 'tkinter.filedialog'," >> data_check_noconsole.spec
+        echo "        # Data processing" >> data_check_noconsole.spec
+        echo "        'pandas', 'openpyxl', 'chardet'," >> data_check_noconsole.spec
+        echo "        # Database connectivity" >> data_check_noconsole.spec
+        echo "        'pyodbc', 'pymysql'," >> data_check_noconsole.spec
+        echo "        # Date/time handling" >> data_check_noconsole.spec
+        echo "        'dateutil', 'dateutil.relativedelta', 'datetime'," >> data_check_noconsole.spec
+        echo "        # Configuration and utilities" >> data_check_noconsole.spec
+        echo "        'configparser', 'json', 'os', 'sys', 'threading'," >> data_check_noconsole.spec
+        echo "        'importlib', 'traceback', 'logging'," >> data_check_noconsole.spec
+        echo "        # Pandas internals" >> data_check_noconsole.spec
+        echo "        'pandas._libs', 'pandas._libs.tslibs'," >> data_check_noconsole.spec
+        echo "        'pandas._libs.tslibs.base', 'pandas._libs.tslibs.timedeltas'," >> data_check_noconsole.spec
+        echo "        'pandas.io', 'pandas.io.excel', 'pandas.io.common'," >> data_check_noconsole.spec
+        echo "        # OpenPyXL internals" >> data_check_noconsole.spec
+        echo "        'openpyxl.cell', 'openpyxl.cell._writer'," >> data_check_noconsole.spec
+        echo "        'openpyxl.workbook', 'openpyxl.worksheet'" >> data_check_noconsole.spec
+        echo "    ] + pandas_modules + openpyxl_modules + dateutil_modules," >> data_check_noconsole.spec
+        echo "    hookspath=[]," >> data_check_noconsole.spec
+        echo "    runtime_hooks=[]," >> data_check_noconsole.spec
+        echo "    excludes=['matplotlib', 'scipy', 'IPython', 'pytest', 'numpy.testing']," >> data_check_noconsole.spec
+        echo "    cipher=block_cipher," >> data_check_noconsole.spec
+        echo ")" >> data_check_noconsole.spec
+        echo "" >> data_check_noconsole.spec
+        echo "pyz = PYZ(a.pure, a.zipped_data, cipher=block_cipher)" >> data_check_noconsole.spec
+        echo "" >> data_check_noconsole.spec
+        echo "exe = EXE(" >> data_check_noconsole.spec
+        echo "    pyz, a.scripts, a.binaries, a.zipfiles, a.datas, []," >> data_check_noconsole.spec
+        echo "    name='DataCheck'," >> data_check_noconsole.spec
+        echo "    debug=False," >> data_check_noconsole.spec
+        echo "    bootloader_ignore_signals=False," >> data_check_noconsole.spec
+        echo "    strip=False," >> data_check_noconsole.spec
+        echo "    upx=False," >> data_check_noconsole.spec
+        echo "    runtime_tmpdir=None," >> data_check_noconsole.spec
+        echo "    console=False," >> data_check_noconsole.spec
+        echo "    disable_windowed_traceback=False" >> data_check_noconsole.spec
+        echo ")" >> data_check_noconsole.spec
+        echo "No-console spec file created"
+    
+    - name: Build Debug EXE
+      run: |
+        echo "=== Building Debug Version with Console ==="
+        pyinstaller data_check_debug.spec --clean --noconfirm
+    
+    - name: Build No-Console EXE
+      run: |
+        echo "=== Building Production Version without Console ==="
+        pyinstaller data_check_noconsole.spec --clean --noconfirm
+    
+    - name: Verify build results
+      run: |
+        echo "=== Build Results ==="
+        if (Test-Path "dist") {
+          echo "dist directory contents:"
+          Get-ChildItem dist | Format-Table Name, Length
+          
+          $debugExists = Test-Path "dist\DataCheck-Debug.exe"
+          $prodExists = Test-Path "dist\DataCheck.exe"
+          
+          if ($debugExists) {
+            $size = (Get-Item "dist\DataCheck-Debug.exe").Length / 1MB
+            Write-Host "SUCCESS: DataCheck-Debug.exe created (with console)"
+            Write-Host "Debug Size: $($size.ToString('F2')) MB"
+          }
+          
+          if ($prodExists) {
+            $size = (Get-Item "dist\DataCheck.exe").Length / 1MB
+            Write-Host "SUCCESS: DataCheck.exe created (no console)"
+            Write-Host "Production Size: $($size.ToString('F2')) MB"
+          }
+          
+          if (-not $debugExists -and -not $prodExists) {
+            Write-Host "ERROR: No EXE files created"
+            exit 1
+          }
+        } else {
+          echo "ERROR: dist directory not created"
+          exit 1
+        }
+    
+    - name: Upload both versions
+      uses: actions/upload-artifact@v4
+      if: success()
+      with:
+        name: DataCheck-Windows-Both-Versions
+        path: |
+          dist/
+          app_settings.json
+          check_definitions.json
+        retention-days: 30
+        
+    - name: Upload debug info on failure
+      uses: actions/upload-artifact@v4
+      if: failure()
+      with:
+        name: Build-Debug-Info
+        path: |
+          build/
+          *.spec
+        retention-days: 7
