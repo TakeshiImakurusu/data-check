@@ -105,4 +105,8 @@ jobs:
         path: |
           dist/
           build/
+          *.py
+          *.json
+          *.spec
+          README.md
         retention-days: 7

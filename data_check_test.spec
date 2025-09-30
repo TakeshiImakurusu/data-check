@@ -8,6 +8,10 @@ a = Analysis(
     datas=[
         ('app_settings.json', '.'),
         ('check_definitions.json', '.'),
+        ('dekispart.py', '.'),
+        ('innosite.py', '.'),
+        ('dekispart_school.py', '.'),
+        ('cloud.py', '.'),
     ],
     hiddenimports=[
         'dekispart', 'innosite', 'dekispart_school', 'cloud',
