@@ -215,16 +215,12 @@ def check_0007(row, errors_list):
     if user_id_len in ng_lengths:
         _add_error_message(errors_list, row["stdUserID"], "DEKISPART_CHK_0007", row.get("stdID", ""))
 
-def check_0008(row, errors_list, user_id_list):
+def check_0008(row, errors_list, duplicate_user_ids):
     """
     DEKISPART_CHK_0008: stdUserIDが重複していないこと
     """
-    if not user_id_list:
-        _add_error_message(errors_list, row["stdUserID"], "DEKISPART_CHK_0008", row.get("stdID", ""))
-        return
-    
-    # stdUserIDが重複しているかチェック
-    if user_id_list.count(row["stdUserID"]) >= 2:
+    # 事前に計算された重複IDセットに含まれているかチェック
+    if row["stdUserID"] in duplicate_user_ids:
         _add_error_message(errors_list, row["stdUserID"], "DEKISPART_CHK_0008", row.get("stdID", ""))
 
 def check_0009(row, errors_list):
@@ -362,26 +358,26 @@ def check_0026(row, errors_list):
     """DEKISPART_CHK_0026: stdSale1が"000759"の場合、stdNsyuが"211"であること"""
     _check_sale1_nsyu_211(row, errors_list, "000759", "DEKISPART_CHK_0026")
 
-def check_0027(row, errors_list):
+def check_0027(row, errors_list, customers_dict):
     """
     DEKISPART_CHK_0027: stdKaiyakuがFALSEかつstdSaleNam1に不正な記号を含む場合NG
     """
     # チェック対象の先頭文字リスト
     forbidden_leading_symbols = ["：", "×", "▲", "★", "■"]
-    #得意先マスタリスト取得する
-    customers_list = load_customers_list_from_csv()
-    # customers_list を得意先コードで検索しやすいように辞書に変換しておく
-    customers_dict = {
-        str(customer["得意先コード"]): customer["得意先名１"]
-        for customer in customers_list
-        if "得意先コード" in customer and "得意先名１" in customer
-    }
 
     customer_code = str(row["stdSaleNam1"]).strip()
-    if customer_code in customers_dict:
-        customer_name1 = customers_dict[customer_code]
-        if row["stdKaiyaku"] is False and (customer_name1 and any(customer_name1.startswith(symbol) for symbol in forbidden_leading_symbols)):
-            _add_error_message(errors_list, row["stdUserID"], "DEKISPART_CHK_0027", row.get("stdID", ""))
+    customer_record = customers_dict.get(customer_code)
+    if not customer_record:
+        return
+
+    customer_name1 = customer_record.get("得意先名１") if isinstance(customer_record, dict) else None
+
+    if (
+        row["stdKaiyaku"] is False
+        and customer_name1
+        and any(customer_name1.startswith(symbol) for symbol in forbidden_leading_symbols)
+    ):
+        _add_error_message(errors_list, row["stdUserID"], "DEKISPART_CHK_0027", row.get("stdID", ""))
 
 def check_0038(row, errors_list):
     """
@@ -439,7 +435,8 @@ def check_0032(row, errors_list, totalnet_list):
     DEKISPART_CHK_0032: stdNsyu(入金経路)が121　と　トータルネットに登録あるか
     """
     if row["stdNsyu"] == 121:
-        if row["stdID"] not in totalnet_list:
+        std_id = str(row["stdID"]).strip()
+        if std_id not in totalnet_list:
                 _add_error_message(errors_list, row["stdUserID"], "DEKISPART_CHK_0032", row.get("stdID", ""))
 
 def check_0033(row, errors_list, totalnet_list):
@@ -447,7 +444,8 @@ def check_0033(row, errors_list, totalnet_list):
     DEKISPART_CHK_0033: stdJifuriDM(自振DM（TRUE＝チェック済))　がTRUE　かつ　トータルネットに登録があるもの
     """
     if row["stdJifuriDM"] is True:
-        if row["stdSale1"] in totalnet_list:
+        std_sale1 = str(row["stdSale1"]).strip()
+        if std_sale1 in totalnet_list:
             _add_error_message(errors_list, row["stdUserID"], "DEKISPART_CHK_0033", row.get("stdID", ""))
 
 def check_0034(row, errors_list, sales_master_list):
@@ -716,42 +714,43 @@ def check_0039_sales_master_related(row, errors_list, sales_master_list):
         # stdUserID が存在しない場合を考慮し .get() を使用
         _add_error_message(errors_list, row.get("stdUserID"), "DEKISPART_CHK_0039", row.get("stdID", ""))
 
-def check_0040(row, errors_list):
+def check_0040(row, errors_list, sales_person_dict):
     """
     DEKISPART_CHK_0040: stdKaiyakuがFALSEかつstdTselに×または・が含まれている場合NG
     """
-    #担当者マスタリストを取得する
-    sales_person_list = load_sales_person_list_from_csv()
-
-    # sales_person_list を担当者コードで検索しやすいように辞書に変換しておく
-    # 担当者コードがユニークであることを前提とします
-    sales_person_dict = {
-        str(person["担当者コード"]): person["担当者名"]
-        for person in sales_person_list
-        if "担当者コード" in person and "担当者名" in person
-    }
-
     std_tsel_code = str(row["stdTsel"]).strip()
-    if std_tsel_code in sales_person_dict:
-        person_name = sales_person_dict[std_tsel_code]
-        if row["stdKaiyaku"] == False and (person_name.startswith("×") or person_name.startswith("・")):
-            _add_error_message(errors_list, row["stdUserID"], "DEKISPART_CHK_0040", row.get("stdID", ""))
+    person_record = sales_person_dict.get(std_tsel_code)
+    if not person_record:
+        return
 
-def get_salKName2K_from_salCode(sal_code: str) -> str | None:
+    person_name = (
+        person_record.get("担当者名")
+        if isinstance(person_record, dict)
+        else None
+    )
+
+    if (
+        row["stdKaiyaku"] == False
+        and person_name
+        and (person_name.startswith("×") or person_name.startswith("・"))
+    ):
+        _add_error_message(errors_list, row["stdUserID"], "DEKISPART_CHK_0040", row.get("stdID", ""))
+
+def prepare_salKName2K_dict() -> dict:
     """
-    salCodeを元にt_salmst_kからsalKName2Kを取得する汎用関数。
+    t_salmst_kからsalCodeとsalKName2Kのペアを全て取得し、辞書として返す。
     """
-    if not sal_code:
-        return None
-    query = f"SELECT salKName2K FROM t_salmst_k WHERE salCode = '{sal_code}'"
+    query = "SELECT salCode, salKName2K FROM t_salmst_k"
     try:
         df = fetch_data_from_db("KSMAIN_MYSQL", query)
         if not df.empty:
-            return str(df.iloc[0]['salKName2K']).strip()
-        return None
+            # salCodeをキー、salKName2Kを値とする辞書を作成
+            # 重複がある場合、最初のエントリを使用
+            return df.drop_duplicates(subset='salCode').set_index('salCode')['salKName2K'].to_dict()
+        return {}
     except Exception as e:
-        logging.error(f"Error fetching salKName2K for salCode '{sal_code}': {e}")
-        return None
+        logging.error(f"Error fetching data for prepare_salKName2K_dict: {e}")
+        return {}
 
 def check_0041(row, errors_list):
     """
@@ -767,20 +766,21 @@ def check_0042(row, errors_list):
     if row["stdKaiyaku"] == False and pd.isna(row["stdTpla"]):
         _add_error_message(errors_list, row["stdUserID"], "DEKISPART_CHK_0042", row.get("stdID", ""))
 
-def check_0043(row, errors_list):
+def check_0043(row, errors_list, salKName2K_dict):
     """
     DEKISPART_CHK_0043: stdKaiyakuがFALSEの時、stdTpla（営業所名）が
-    KSMAIN_MYSQL.ksmainのt_salmst_kのsalCodeで取得できる所属名（salKName2K）と
-    一致していれば OK、一致しないものを NG とするチェックに変更
+    事前に取得した所属名（salKName2K）と一致するかチェック
     """
     if row["stdKaiyaku"] == False:
         stdTpla_value = str(row["stdTpla"]).strip()
         if not stdTpla_value: # stdTplaが空の場合はチェックをスキップ
             return
 
-        salKName2K = get_salKName2K_from_salCode(stdTpla_value)
+        # 事前に取得した辞書から所属名を取得
+        salKName2K = salKName2K_dict.get(stdTpla_value)
 
-        if salKName2K is None or stdTpla_value != salKName2K:
+        # 辞書に存在しない、または値が一致しない場合NG
+        if salKName2K is None or stdTpla_value != str(salKName2K).strip():
             _add_error_message(errors_list, row["stdUserID"], "DEKISPART_CHK_0043", row.get("stdID", ""))
 
 def check_0044(row, errors_list):
@@ -868,7 +868,7 @@ def check_0058(row, errors_list):
     if row["stdKaiyaku"] == False and "別送" in str(row["stdKbiko"]) and str(row["stdHassouType"]) != "2":
         _add_error_message(errors_list, row["stdUserID"], "DEKISPART_CHK_0058", row.get("stdID", ""))
 
-def check_0059(row, errors_list, customers_list):
+def check_0059(row, errors_list, customers_dict):
     """
     DEKISPART_CHK_0059: 得意先マスタのD列（担当敬称）とstdFlg4（敬称フラグ）の整合性チェック
     """
@@ -878,12 +878,8 @@ def check_0059(row, errors_list, customers_list):
         return
     
     # 得意先マスタから該当する得意先を検索
-    customer_info = None
-    for customer in customers_list:
-        if str(customer.get("得意先コード", "")).strip() == std_sale1:
-            customer_info = customer
-            break
-    
+    customer_info = customers_dict.get(std_sale1)
+
     if not customer_info:
         return  # 得意先マスタに該当データがない場合はスキップ
     
@@ -901,67 +897,119 @@ def check_0059(row, errors_list, customers_list):
     elif honorific not in ["様", "御中"] and honorific:  # 空でない場合のみチェック
         _add_error_message(errors_list, row["stdUserID"], "DEKISPART_CHK_0059", row.get("stdID", ""))
 
-def check_0060(row, errors_list):
+def check_0060(row, errors_list, chk0060_target_ids, chk0060_item_ids):
     """
     DEKISPART_CHK_0060: イノサイトデータとの関連チェック
     t_stdidata.stdiinnoidが321から始まり、stdipcodeが1541、かつstdid_i=std_idのデータがある場合、
     関連するT_stdItemにitmCode="1494"が存在しない場合はNG
     """
+    std_id = row.get("stdID")
+    if not std_id:
+        return
+
+    if (
+        std_id in chk0060_target_ids
+        and std_id not in chk0060_item_ids
+    ):
+        _add_error_message(errors_list, row["stdUserID"], "DEKISPART_CHK_0060", row.get("stdID", ""))
+
+
+def prepare_chk0060_reference_sets(std_ids):
+    """
+    CHK_0060で使用する参照セットを事前に取得する。
+    """
+    std_ids = {str(std_id).strip() for std_id in std_ids if pd.notna(std_id) and str(std_id).strip()}
+    if not std_ids:
+        return set(), set()
+
+    mysql_ids = set()
+    sqlserver_ids = set()
+
+    mysql_conn = None
+    mysql_cursor = None
+    sqlserver_conn = None
+    sqlserver_cursor = None
+
     try:
-        # 現在の行のstdIDを取得
-        std_id = row.get("stdID")
-        if not std_id:
-            return
-        
-        # Step 1: MySQL（イノサイト）のt_stdidataでデータを検索
         mysql_conn = get_mysql_connection()
         mysql_cursor = mysql_conn.cursor()
-        
-        mysql_cursor.execute("""
-            SELECT COUNT(*) FROM t_stdidata 
-            WHERE stdiinnoid LIKE '321%%' AND stdipccode = '1541' AND stdid_i = %s
-        """, (std_id,))
-        
-        stdidata_count = mysql_cursor.fetchone()[0]
-        mysql_conn.close()
-        
-        if stdidata_count == 0:
-            return  # 該当データがない場合はスキップ
-        
-        # Step 2: SQL Server（デキスパート）のT_stdItemでデータを検索
+        mysql_cursor.execute(
+            """
+            SELECT DISTINCT stdid_i
+            FROM t_stdidata
+            WHERE stdiinnoid LIKE '321%%' AND stdipccode = '1541'
+            """
+        )
+        mysql_ids = {str(row[0]).strip() for row in mysql_cursor.fetchall() if row and row[0] is not None}
+    except Exception as e:
+        logging.error(f"CHK_0060 MySQLデータ取得でエラー: {e}")
+    finally:
+        try:
+            mysql_cursor.close()
+        except Exception:
+            pass
+        try:
+            mysql_conn.close()
+        except Exception:
+            pass
+
+    try:
         sqlserver_conn = get_sqlserver_connection()
         sqlserver_cursor = sqlserver_conn.cursor()
-        
-        sqlserver_cursor.execute("""
-            SELECT COUNT(*) FROM T_stdItem 
-            WHERE itmUser = ? AND itmCode = '1494'
-        """, (std_id,))
-        
-        item_count = sqlserver_cursor.fetchone()[0]
-        sqlserver_conn.close()
-        
-        if item_count == 0:
-            _add_error_message(errors_list, row["stdUserID"], "DEKISPART_CHK_0060", row.get("stdID", ""))
-        
+        sqlserver_cursor.execute(
+            """
+            SELECT DISTINCT itmUser
+            FROM T_stdItem
+            WHERE itmCode = '1494'
+            """
+        )
+        sqlserver_ids = {str(row[0]).strip() for row in sqlserver_cursor.fetchall() if row and row[0] is not None}
     except Exception as e:
-        logging.error(f"DEKISPART_CHK_0060でエラーが発生しました: {e}")
-        # エラーが発生した場合はスキップ（ログに記録）
+        logging.error(f"CHK_0060 SQLServerデータ取得でエラー: {e}")
+    finally:
+        try:
+            sqlserver_cursor.close()
+        except Exception:
+            pass
+        try:
+            sqlserver_conn.close()
+        except Exception:
+            pass
+
+    return mysql_ids & std_ids, sqlserver_ids & std_ids
 
 # データチェック関数
-def validate_data(df, progress_callback, individual_list, totalnet_list, sales_person_list, customers_list):
+def validate_data(df, progress_callback, individual_list, totalnet_records, sales_person_records, customers_records):
     errors = []  #エラーリストを初期化
     total_ids = len(df)
 
-    # ユーザーIDリストを取得する
-    userid_list = get_stdUserID_list(df)
+    # CHK_0008 のために、重複しているユーザーIDのセットを事前に作成する
+    duplicate_user_ids = set(df[df.duplicated(subset=['stdUserID'], keep=False)]['stdUserID'])
 
-    # 個人名リストを取得する
-    individual_list = load_individual_list_from_excel()
+    # 補助リストを整形
+    individual_list = individual_list or []
 
-    # トータルネットリストを取得する
-    totalnet_list = load_totalnet_list_from_csv()
+    if isinstance(totalnet_records, pd.DataFrame):
+        totalnet_list = {
+            str(val).strip()
+            for val in totalnet_records.get("顧客番号", pd.Series(dtype=str)).dropna().astype(str)
+        }
+    elif isinstance(totalnet_records, (list, set, tuple)):
+        totalnet_list = {str(val).strip() for val in totalnet_records if pd.notna(val)}
+    else:
+        totalnet_list = set()
 
-    # 不要販売店リストは削除されました（要望#005対応）
+    sales_person_dict = {}
+    for record in sales_person_records or []:
+        code = str(record.get("担当者コード", "")).strip()
+        if code:
+            sales_person_dict[code] = record
+
+    customers_dict = {}
+    for record in customers_records or []:
+        code = str(record.get("得意先コード", "")).strip()
+        if code and code not in customers_dict:
+            customers_dict[code] = record
 
     # 販売店マスタの取得
     sales_master_list = get_sales_master_data() # まずDataFrameとして取得
@@ -975,6 +1023,10 @@ def validate_data(df, progress_callback, individual_list, totalnet_list, sales_p
         for item in sales_master_list
     }
 
+    std_ids_source = df["stdID"] if "stdID" in df.columns else []
+    chk0060_target_ids, chk0060_item_ids = prepare_chk0060_reference_sets(std_ids_source)
+    salKName2K_dict = prepare_salKName2K_dict() # CHK_0043のためのデータを事前に取得
+
     # 全てのチェック関数をリストにまとめる
     # ここで定義した関数として実装してください。
     check_functions = [
@@ -985,25 +1037,25 @@ def validate_data(df, progress_callback, individual_list, totalnet_list, sales_p
         check_0011, check_0012, check_0013, check_0014, check_0015,
         check_0016, check_0017, check_0018, check_0019, check_0020,
         check_0021, check_0022, check_0023, check_0024, check_0025,
-        check_0026, check_0027, check_0029, check_0030,
+        check_0026, lambda row, errors: check_0027(row, errors, customers_dict), check_0029, check_0030,
         check_0031, check_0037, check_0038, check_0039,
-        check_0040, check_0041, check_0042, check_0043,
+        lambda row, errors: check_0040(row, errors, sales_person_dict), check_0041, check_0042,
         check_0044, check_0045, check_0046, check_0047, check_0048,
         check_0049, check_0050, check_0051, check_0052, check_0053,
         check_0054, check_0055, check_0056, check_0057, check_0058,
 
         # 外部データ (リスト/辞書) を引数に取るチェック
         # 各lambda関数は、rowとerrorsに加えて必要な外部データを渡します。
-        lambda row, errors: check_0008(row, errors, userid_list),
+        lambda row, errors: check_0008(row, errors, duplicate_user_ids),
         lambda row, errors: check_0010(row, errors, individual_list),
         lambda row, errors: check_0032(row, errors, totalnet_list),
         lambda row, errors: check_0033(row, errors, totalnet_list),
         lambda row, errors: check_0034(row, errors, sales_master_dict),
         lambda row, errors: check_0035(row, errors, sales_master_dict),
         lambda row, errors: check_0036(row, errors, sales_master_dict),
-        lambda row, errors: check_0038_sales_master_related(row, errors, sales_master_dict),
-        lambda row, errors: check_0059(row, errors, customers_list),
-        check_0060,
+        lambda row, errors: check_0043(row, errors, salKName2K_dict),
+        lambda row, errors: check_0059(row, errors, customers_dict),
+        lambda row, errors: check_0060(row, errors, chk0060_target_ids, chk0060_item_ids),
     ]
 
     for index, row in df.iterrows():
@@ -1041,10 +1093,6 @@ def save_to_excel(errors_df):
     else:
         print("エラーなし。Excel ファイルは作成されません。")
 
-#ユーザーIDリストを取得する
-def get_stdUserID_list(df: pd.DataFrame):
-    stdUserID_list = list(set(df['stdUserID'].tolist()))
-    return stdUserID_list
 
 # 個人名リストを読み込む
 def load_individual_list_from_excel(file_path=None):
@@ -1239,7 +1287,14 @@ def run_dekispart_check(progress_callback=None, aux_paths=None):
 
 def main():
     data = fetch_data()
-    errors_df = validate_data(data)
+    errors_df = validate_data(
+        data,
+        progress_callback=None,
+        individual_list=[],
+        totalnet_records=pd.DataFrame(),
+        sales_person_records=[],
+        customers_records=[],
+    )
     save_to_excel(errors_df)
 
 if __name__ == "__main__":
