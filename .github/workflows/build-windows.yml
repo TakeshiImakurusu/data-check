@@ -47,6 +47,7 @@ jobs:
         if (Test-Path "app_settings.json") { echo "OK app_settings.json" } else { echo "MISSING app_settings.json"; exit 1 }
         if (Test-Path "check_definitions.json") { echo "OK check_definitions.json" } else { echo "MISSING check_definitions.json"; exit 1 }
         if (Test-Path "config.ini") { echo "OK config.ini (optional)" } else { echo "WARNING config.ini not found, will be included separately" }
+        if (Test-Path "input_file") { echo "OK input_file directory" } else { echo "INFO input_file directory not found (optional)" }
         echo "File check completed"
     
     - name: Create PyInstaller spec file
@@ -132,14 +133,23 @@ jobs:
       run: |
         Write-Host "Preparing release package..."
         if (Test-Path "release_package") {
-          Remove-Item -Recurse -Force release_package
+          Remove-Item -Recurse -Force release_package -ErrorAction SilentlyContinue
         }
         New-Item -ItemType Directory -Force -Path release_package | Out-Null
         Copy-Item "dist\DataCheck.exe" "release_package\" -Force
         if (Test-Path "app_settings.json") { Copy-Item "app_settings.json" "release_package\" -Force }
         if (Test-Path "check_definitions.json") { Copy-Item "check_definitions.json" "release_package\" -Force }
         if (Test-Path "config.ini") { Copy-Item "config.ini" "release_package\" -Force }
-        if (Test-Path "input_file") { Copy-Item "input_file" "release_package\input_file" -Recurse -Force }
+        if (Test-Path "input_file") {
+          Write-Host "Copying input_file directory..."
+          New-Item -ItemType Directory -Force -Path "release_package\input_file" | Out-Null
+          robocopy "input_file" "release_package\input_file" /E /NFL /NDL /NJH /NJS /NP
+          $robocopyExit = $LASTEXITCODE
+          if ($robocopyExit -gt 3) {
+            Write-Error "robocopy failed with exit code $robocopyExit"
+            exit $robocopyExit
+          }
+        }
         if (Test-Path "DISTRIBUTION_README.md") { Copy-Item "DISTRIBUTION_README.md" "release_package\" -Force }
         Write-Host "Release package prepared in release_package/"
 
