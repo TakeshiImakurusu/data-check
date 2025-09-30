@@ -33,17 +33,17 @@ if __name__ == "__main__":
         for lib, install_cmd in required_libraries.items():
             try:
                 __import__(lib)
-                print(f"✅ {lib}: OK")
+                print(f"[OK] {lib}: OK")
             except ImportError:
                 missing_libs.append(lib)
-                print(f"❌ {lib}: Missing")
+                print(f"[ERROR] {lib}: Missing")
         
         if missing_libs:
             print(f"Missing libraries: {', '.join(missing_libs)}")
             sys.exit(1)
         else:
-            print("✅ All dependencies satisfied")
-            print("✅ Test build completed successfully")
+            print("[SUCCESS] All dependencies satisfied")
+            print("[SUCCESS] Test build completed successfully")
             sys.exit(0)
 
 # 各シリーズのチェックロジックをインポート
