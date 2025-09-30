@@ -44,68 +44,42 @@ jobs:
     - name: Create simplified spec file
       run: |
         echo "Creating PyInstaller spec file..."
-        $spec = @"
-# -*- mode: python ; coding: utf-8 -*-
-
-block_cipher = None
-
-a = Analysis(
-    ['data_check.py'],
-    pathex=[],
-    binaries=[],
-    datas=[
-        ('app_settings.json', '.'),
-        ('check_definitions.json', '.'),
-    ],
-    hiddenimports=[
-        'dekispart',
-        'innosite', 
-        'dekispart_school',
-        'cloud',
-        'tkinter',
-        'tkinter.ttk',
-        'tkinter.messagebox',
-        'tkinter.filedialog',
-        'pandas',
-        'openpyxl',
-        'threading',
-        'datetime',
-        'json',
-        'os',
-        'sys'
-    ],
-    hookspath=[],
-    hooksconfig={},
-    runtime_hooks=[],
-    excludes=[],
-    cipher=block_cipher,
-    noarchive=False,
-)
-
-pyz = PYZ(a.pure, a.zipped_data, cipher=block_cipher)
-
-exe = EXE(
-    pyz,
-    a.scripts,
-    a.binaries,
-    a.zipfiles,
-    a.datas,
-    [],
-    name='DataCheck',
-    debug=False,
-    bootloader_ignore_signals=False,
-    strip=False,
-    upx=False,
-    upx_exclude=[],
-    runtime_tmpdir=None,
-    console=True,
-    disable_windowed_traceback=False,
-    icon=None,
-    codesign_identity=None,
-    entitlements_file=None,
-)
-"@
-        $spec | Out-File -FilePath "data_check.spec" -Encoding UTF8
+        echo "# -*- mode: python ; coding: utf-8 -*-" > data_check.spec
+        echo "block_cipher = None" >> data_check.spec
+        echo "" >> data_check.spec
+        echo "a = Analysis(" >> data_check.spec
+        echo "    ['data_check.py']," >> data_check.spec
+        echo "    pathex=[]," >> data_check.spec
+        echo "    binaries=[]," >> data_check.spec
+        echo "    datas=[" >> data_check.spec
+        echo "        ('app_settings.json', '.')," >> data_check.spec
+        echo "        ('check_definitions.json', '.')," >> data_check.spec
+        echo "    ]," >> data_check.spec
+        echo "    hiddenimports=[" >> data_check.spec
+        echo "        'dekispart', 'innosite', 'dekispart_school', 'cloud'," >> data_check.spec
+        echo "        'tkinter', 'tkinter.ttk', 'tkinter.messagebox', 'tkinter.filedialog'," >> data_check.spec
+        echo "        'pandas', 'openpyxl', 'threading', 'datetime', 'json', 'os', 'sys'" >> data_check.spec
+        echo "    ]," >> data_check.spec
+        echo "    hookspath=[]," >> data_check.spec
+        echo "    runtime_hooks=[]," >> data_check.spec
+        echo "    excludes=[]," >> data_check.spec
+        echo "    cipher=block_cipher," >> data_check.spec
+        echo ")" >> data_check.spec
+        echo "" >> data_check.spec
+        echo "pyz = PYZ(a.pure, a.zipped_data, cipher=block_cipher)" >> data_check.spec
+        echo "" >> data_check.spec
+        echo "exe = EXE(" >> data_check.spec
+        echo "    pyz, a.scripts, a.binaries, a.zipfiles, a.datas, []," >> data_check.spec
+        echo "    name='DataCheck'," >> data_check.spec
+        echo "    debug=False," >> data_check.spec
+        echo "    bootloader_ignore_signals=False," >> data_check.spec
+        echo "    strip=False," >> data_check.spec
+        echo "    upx=False," >> data_check.spec
+        echo "    runtime_tmpdir=None," >> data_check.spec
+        echo "    console=True," >> data_check.spec
+        echo "    disable_windowed_traceback=False" >> data_check.spec
+        echo ")" >> data_check.spec
+        echo "Spec file created successfully"
     
     - name: Build EXE with PyInstaller
       run: |
