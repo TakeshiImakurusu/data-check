@@ -1,0 +1,136 @@
+name: Test Build EXE
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+    paths: [ '.github/workflows/test-build.yml' ]
+
+jobs:
+  test-build:
+    runs-on: windows-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install pyinstaller pandas openpyxl pyodbc pymysql configparser
+    
+    - name: List files
+      run: |
+        echo "=== Repository contents ==="
+        dir
+        echo ""
+        echo "=== Python modules test ==="
+        python -c "import sys; print('Python:', sys.version)"
+        python -c "import tkinter; print('✓ tkinter')"
+        python -c "import pandas; print('✓ pandas')"
+        python -c "import openpyxl; print('✓ openpyxl')"
+        python -c "import configparser; print('✓ configparser')"
+        echo "✅ All imports successful"
+    
+    - name: Test PyInstaller basic functionality
+      run: |
+        echo "=== Testing PyInstaller ==="
+        echo "print('Hello from PyInstaller test')" > test_script.py
+        pyinstaller --onefile test_script.py
+        echo "✓ PyInstaller basic test completed"
+        if (Test-Path "dist\test_script.exe") {
+          echo "✅ test_script.exe created successfully"
+        } else {
+          echo "❌ test_script.exe not found"
+        }
+    
+    - name: Attempt DataCheck build
+      run: |
+        echo "=== Attempting main application build ==="
+        
+        # Simple spec file for testing
+        echo "# -*- mode: python ; coding: utf-8 -*-
+block_cipher = None
+
+a = Analysis(
+    ['data_check.py'],
+    pathex=[],
+    binaries=[],
+    datas=[
+        ('app_settings.json', '.'),
+        ('check_definitions.json', '.'),
+    ],
+    hiddenimports=[
+        'dekispart', 'innosite', 'dekispart_school', 'cloud',
+        'tkinter', 'tkinter.ttk', 'tkinter.messagebox', 'tkinter.filedialog',
+        'pandas', 'openpyxl', 'configparser'
+    ],
+    hookspath=[],
+    runtime_hooks=[],
+    excludes=[],
+    win_no_prefer_redirects=False,
+    win_private_assemblies=False,
+    cipher=block_cipher,
+    noarchive=False,
+)
+
+pyz = PYZ(a.pure, a.zipped_data, cipher=block_cipher)
+
+exe = EXE(
+    pyz,
+    a.scripts,
+    a.binaries,
+    a.zipfiles,
+    a.datas,
+    [],
+    name='DataCheck-Test',
+    debug=True,
+    bootloader_ignore_signals=False,
+    strip=False,
+    upx=False,
+    upx_exclude=[],
+    runtime_tmpdir=None,
+    console=True,
+    disable_windowed_traceback=False,
+)" > data_check_test.spec
+        
+        pyinstaller data_check_test.spec --clean --noconfirm
+        
+    - name: Check build results
+      run: |
+        echo "=== Build Results ==="
+        if (Test-Path "dist") {
+          echo "📁 dist directory contents:"
+          dir dist
+          
+          if (Test-Path "dist\DataCheck-Test.exe") {
+            echo "✅ DataCheck-Test.exe created successfully"
+            $size = (Get-Item "dist\DataCheck-Test.exe").Length / 1MB
+            echo "📦 Size: $($size.ToString('F1')) MB"
+          } else {
+            echo "❌ DataCheck-Test.exe not found"
+          }
+        } else {
+          echo "❌ dist directory not found"
+        }
+        
+        if (Test-Path "build") {
+          echo ""
+          echo "📁 build directory contents:"
+          dir build
+        }
+    
+    - name: Upload test artifact
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: Test-Build-Results
+        path: |
+          dist/
+          build/
+        retention-days: 7
