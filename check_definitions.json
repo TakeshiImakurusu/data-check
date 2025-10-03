@@ -414,10 +414,10 @@
     },
     "DEKISPART_CHK_0060": {
         "series": "DEKISPART",
-        "name": "イノサイトデータとの関連チェック",
-        "user_message": "イノサイトデータとデキスパートデータの関連チェックで不整合があります。",
+        "name": "イノサイトデータとの関連チェック（SiTE-NEXUS 3Dイラスト）",
+        "user_message": "INNOSiTE保守DBのSiTE-NEXUSシステムで、デキス保守のソフト構成に3Dイラストが存在しません。",
         "severity": "エラー",
-        "description": "t_stdidata.stdiinnoidが「321」から始まり、stdipcodeが「1541」、かつstdid_iが現在のstdIDと一致するデータがイノサイトに存在する場合、関連するT_stdItemにitmCodeが「1494」のデータが存在しない場合に検出されます。"
+        "description": "INNOSiTE保守DBのシステムが\"SiTE-NEXUS\"(stdipcode=1541)であり、デキス整理番号がデキス保守DBのデキス保守整理番号と一致する場合、デキス保守のソフト構成に3Dイラスト(itmCode=1494)が存在すればOK、存在しなければNGとして検出されます。"
     },
     "INNOSITE_CHK_0001": {
         "series": "INNOSITE",

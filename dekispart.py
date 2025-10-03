@@ -115,7 +115,7 @@ def get_mysql_connection():
     """
     config = configparser.ConfigParser()
     config.read('config.ini')
-    db_config = config['KSMAIN2_MYSQL']
+    db_config = config['KSMAIN2_MYSQL']  # KSMAIN2_MYSQLに変更
 
     return pymysql.connect(
         host=db_config['host'],
@@ -241,17 +241,23 @@ def check_0010(row, errors_list, individual_list):
 
 def check_0011(row, errors_list):
     """
-    DEKISPART_CHK_0011: stdFlg4がTRUE(敬称が様)かつstdTan1(担当者)が空白であること
+    DEKISPART_CHK_0011: stdFlg4がTRUE(敬称が様)の場合、stdTan1(担当者)は空白であること
     """
-    if row["stdFlg4"] == True and (row["stdTan1"] is not None and str(row["stdTan1"]).strip() != ""):
-        _add_error_message(errors_list, row["stdUserID"], "DEKISPART_CHK_0011", row.get("stdID", ""))
+    if row["stdFlg4"] == True:
+        # stdTan1が存在し、空白でない場合はエラー
+        tan1_value = row["stdTan1"]
+        if tan1_value is not None and str(tan1_value).strip() != "":
+            _add_error_message(errors_list, row["stdUserID"], "DEKISPART_CHK_0011", row.get("stdID", ""))
 
 def check_0012(row, errors_list):
     """
-    DEKISPART_CHK_0012: stdFlg4がFALSEかつstdTan1が空白でないこと
+    DEKISPART_CHK_0012: stdFlg4がFALSE(敬称=御中)の場合、stdTan1(メイン担当者)が空白であるとエラー
     """
-    if row["stdFlg4"] == False and str(row["stdTan1"]).strip() == "":
-        _add_error_message(errors_list, row["stdUserID"], "DEKISPART_CHK_0012", row.get("stdID", ""))
+    if row["stdFlg4"] == False:
+        # stdTan1がNone、空文字、または空白のみの場合をエラーとする
+        tan1_value = row["stdTan1"]
+        if tan1_value is None or str(tan1_value).strip() == "":
+            _add_error_message(errors_list, row["stdUserID"], "DEKISPART_CHK_0012", row.get("stdID", ""))
 
 def check_0013(row, errors_list):
     """
@@ -385,7 +391,7 @@ def check_0038(row, errors_list):
     """
     if row["stdKaiyaku"] == False:
         if "更新案内不要" in str(row["stdKbiko"]):
-            if str(row["stdHassouType"]) != "0":
+            if row["stdHassouType"] != 0:
                 _add_error_message(errors_list, row["stdUserID"], "DEKISPART_CHK_0038", row.get("stdID", ""))
 
 def check_0039(row, errors_list):
@@ -394,7 +400,7 @@ def check_0039(row, errors_list):
     """
     if row["stdKaiyaku"] == False:
         if "更新案内不要" in str(row["stdKbiko"]):
-            if str(row["stdHassouType"]) != "0":
+            if row["stdHassouType"] != 0:
                 _add_error_message(errors_list, row["stdUserID"], "DEKISPART_CHK_0039", row.get("stdID", ""))
 
 def check_0029(row, errors_list):
@@ -434,7 +440,7 @@ def check_0032(row, errors_list, totalnet_list):
     """
     DEKISPART_CHK_0032: stdNsyu(入金経路)が121　と　トータルネットに登録あるか
     """
-    if row["stdNsyu"] == 121:
+    if str(row["stdNsyu"]) == "121":
         std_id = str(row["stdID"]).strip()
         if std_id not in totalnet_list:
                 _add_error_message(errors_list, row["stdUserID"], "DEKISPART_CHK_0032", row.get("stdID", ""))
@@ -468,8 +474,8 @@ def check_0034(row, errors_list, sales_master_list):
     # stdKbiko に「更新案内不要」の文字列を含まない
     is_std_kbiko_not_containing_renewal = not (row.get("stdKbiko") and "更新案内不要" in str(row["stdKbiko"]))
 
-    # stdNsyu は row から直接取得
-    is_std_nsyu_122 = row.get("stdNsyu") == 122
+    # stdNsyu は row から直接取得（文字列として比較）
+    is_std_nsyu_122 = str(row.get("stdNsyu")) == "122"
     
     # stdJifuriDM は row から直接取得
     is_std_jifuri_dm_true = row.get("stdJifuriDM") is True
@@ -511,7 +517,7 @@ def check_0035(row, errors_list, sales_master_dict): # sales_master_dict を引�
     # stdbiko3 に「自振DM不要」の文字列を含む
     is_stdbiko3_containing_jifuri_dm = row.get("stdbiko3") and "自振DM不要" in str(row["stdbiko3"])
 
-    is_std_nsyu_122 = row.get("stdNsyu") == 122
+    is_std_nsyu_122 = str(row.get("stdNsyu")) == "122"
     
     is_std_jifuri_dm_true = row.get("stdJifuriDM") is True
 
@@ -566,7 +572,7 @@ def check_0036(row, errors_list, sales_master_dict): # sales_master_dict を引�
     # stdKbiko に「更新案内不要」の文字列を含む
     is_std_kbiko_containing_renewal = row.get("stdKbiko") and "更新案内不要" in str(row["stdKbiko"])
 
-    is_std_nsyu_122 = row.get("stdNsyu") == 122
+    is_std_nsyu_122 = str(row.get("stdNsyu")) == "122"
     
     is_std_jifuri_dm_true = row.get("stdJifuriDM") is True
 
@@ -700,12 +706,12 @@ def check_0039_sales_master_related(row, errors_list, sales_master_list):
 
     # NGとなる stdNsyu と stdHassouType の組み合わせを定義
     # salNotifyRenewal の値に関わらず、以下の組み合わせがNG
-    ng_nsyu_types = {121, 122, 211}
-    ng_hassou_types = {1, 2}
+    ng_nsyu_types = {"121", "122", "211"}  # stdNsyuは文字列型
+    ng_hassou_types = {1, 2}  # stdHassouTypeは整数型
 
     # 現在の行の支払い・発送方法がNGパターンに合致するかチェック
     is_ng_payment_shipping_pattern = (
-        std_nsyu in ng_nsyu_types and
+        str(std_nsyu) in ng_nsyu_types and
         std_hassou_type in ng_hassou_types
     )
 
@@ -769,18 +775,19 @@ def check_0042(row, errors_list):
 def check_0043(row, errors_list, salKName2K_dict):
     """
     DEKISPART_CHK_0043: stdKaiyakuがFALSEの時、stdTpla（営業所名）が
-    事前に取得した所属名（salKName2K）と一致するかチェック
+    事前に取得した所属名（salKName2K）として有効かチェック
     """
     if row["stdKaiyaku"] == False:
         stdTpla_value = str(row["stdTpla"]).strip()
         if not stdTpla_value: # stdTplaが空の場合はチェックをスキップ
             return
 
-        # 事前に取得した辞書から所属名を取得
-        salKName2K = salKName2K_dict.get(stdTpla_value)
-
-        # 辞書に存在しない、または値が一致しない場合NG
-        if salKName2K is None or stdTpla_value != str(salKName2K).strip():
+        # stdTpla（営業所名）が辞書の値として存在するかチェック
+        # salKName2K_dict は {salCode: 営業所名} の形式
+        valid_office_names = set(salKName2K_dict.values())
+        
+        # stdTplaの値が有効な営業所名に含まれているかチェック
+        if stdTpla_value not in valid_office_names:
             _add_error_message(errors_list, row["stdUserID"], "DEKISPART_CHK_0043", row.get("stdID", ""))
 
 def check_0044(row, errors_list):
@@ -858,14 +865,14 @@ def check_0057(row, errors_list):
     """
     DEKISPART_CHK_0057: 加入中に限り、入金経路が自振(121)の場合は更新案内は「送る(1)」でなくてはならない
     """
-    if row["stdKaiyaku"] == False and str(row["stdNsyu"]) == "121" and str(row["stdHassouType"]) != "1":
+    if row["stdKaiyaku"] == False and str(row["stdNsyu"]) == "121" and row["stdHassouType"] != 1:
         _add_error_message(errors_list, row["stdUserID"], "DEKISPART_CHK_0057", row.get("stdID", ""))
 
 def check_0058(row, errors_list):
     """
     DEKISPART_CHK_0058: 加入中に限り、備考に「別送」が含まれる場合、更新案内フラグは「別送(2)」でなくてはならない
     """
-    if row["stdKaiyaku"] == False and "別送" in str(row["stdKbiko"]) and str(row["stdHassouType"]) != "2":
+    if row["stdKaiyaku"] == False and "別送" in str(row["stdKbiko"]) and row["stdHassouType"] != 2:
         _add_error_message(errors_list, row["stdUserID"], "DEKISPART_CHK_0058", row.get("stdID", ""))
 
 def check_0059(row, errors_list, customers_dict):
@@ -900,8 +907,14 @@ def check_0059(row, errors_list, customers_dict):
 def check_0060(row, errors_list, chk0060_target_ids, chk0060_item_ids):
     """
     DEKISPART_CHK_0060: イノサイトデータとの関連チェック
-    t_stdidata.stdiinnoidが321から始まり、stdipcodeが1541、かつstdid_i=std_idのデータがある場合、
-    関連するT_stdItemにitmCode="1494"が存在しない場合はNG
+    INNOSiTE保守DBのシステムが"SiTE-NEXUS"であり、デキス整理番号がデキス保守DBのデキス保守整理番号と一致する場合、
+    デキス保守のソフト構成に3Dイラストが存在すればOK、存在しなければNGとする。
+    
+    条件:
+    - t_stdidata(INNOSITE DB)のstdipcode=1541(SiTE-NEXUS)のstdid_i(整理番号)
+    - stdid_i(INNOSITE整理番号) = stdID(デキスパート整理番号)
+    - stdID = T_stdItem.itmUser
+    - T_stdItem.itmCode = 1494(3Dイラスト)が存在しない場合はNG
     """
     std_id = row.get("stdID")
     if not std_id:
@@ -917,6 +930,10 @@ def check_0060(row, errors_list, chk0060_target_ids, chk0060_item_ids):
 def prepare_chk0060_reference_sets(std_ids):
     """
     CHK_0060で使用する参照セットを事前に取得する。
+    
+    Issue #16の要件に従い:
+    - INNOSITE DB: t_stdidata で stdipcode='1541'(SiTE-NEXUS) の stdid_i を取得
+    - DEKISPART DB: T_stdItem で itmCode='1494'(3Dイラスト) の itmUser を取得
     """
     std_ids = {str(std_id).strip() for std_id in std_ids if pd.notna(std_id) and str(std_id).strip()}
     if not std_ids:
@@ -933,11 +950,12 @@ def prepare_chk0060_reference_sets(std_ids):
     try:
         mysql_conn = get_mysql_connection()
         mysql_cursor = mysql_conn.cursor()
+        # Issue #16の要件に従い、stdipcode='1541'(SiTE-NEXUS)のデータのみを対象とする
         mysql_cursor.execute(
             """
             SELECT DISTINCT stdid_i
             FROM t_stdidata
-            WHERE stdiinnoid LIKE '321%%' AND stdipccode = '1541'
+            WHERE stdipcode = '1541'
             """
         )
         mysql_ids = {str(row[0]).strip() for row in mysql_cursor.fetchall() if row and row[0] is not None}
@@ -956,6 +974,7 @@ def prepare_chk0060_reference_sets(std_ids):
     try:
         sqlserver_conn = get_sqlserver_connection()
         sqlserver_cursor = sqlserver_conn.cursor()
+        # itmCode='1494'(3Dイラスト)が存在するitmUserを取得
         sqlserver_cursor.execute(
             """
             SELECT DISTINCT itmUser
