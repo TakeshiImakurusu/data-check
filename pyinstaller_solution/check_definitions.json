@@ -372,10 +372,10 @@
     },
     "DEKISPART_CHK_0054": {
         "series": "DEKISPART",
-        "name": "stdKaiyaku FALSE時のstdAdd空白チェック",
-        "user_message": "stdKaiyakuがFALSEの場合、stdAddは空白であってはなりません。",
+        "name": "stdAdd空白チェック",
+        "user_message": "stdAddは空白であってはなりません。",
         "severity": "エラー",
-        "description": "stdKaiyakuがFALSE（退会ユーザーではない）の場合、stdAddは空白であってはなりません。stdAddは必須項目です。"
+        "description": "stdAddは必須項目です。空白の場合は入力してください。"
     },
     "DEKISPART_CHK_0055": {
         "series": "DEKISPART",
