@@ -44,9 +44,9 @@
     "DEKISPART_CHK_0007": {
         "series": "DEKISPART",
         "name": "stdUserID桁数・数値・特定値チェック",
-        "user_message": "stdUserIDが半角1～7桁の数字ではない、または不正な値です。",
+        "user_message": "stdUserIDが半角8桁の数字ではない、または不正な値です。",
         "severity": "エラー",
-        "description": "stdUserIDは半角数字で1～7桁である必要があります。また、stdUserIDの値が「9」、「13」、「15」のいずれかである場合は不正です。これらの条件に合致しない場合に検出されます。"
+        "description": "stdUserIDは半角数字8桁である必要があります。stdUserIDの値が半角数字1～7桁、または「9」「13」「15」のいずれかである場合は不正です。これらの条件に合致した場合に検出されます。"
     },
     "DEKISPART_CHK_0008": {
         "series": "DEKISPART",

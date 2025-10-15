@@ -161,6 +161,25 @@ class DekispartTests(unittest.TestCase):
 
         self.assertEqual([error["チェックID"] for error in errors], ["DEKISPART_CHK_0040"])
 
+    def test_check_0007_flags_invalid_numeric_lengths(self):
+        errors = []
+        dekispart.check_0007({"stdUserID": "1234567", "stdID": "A001"}, errors)
+
+        self.assertEqual(len(errors), 1)
+        self.assertEqual(errors[0]["チェックID"], "DEKISPART_CHK_0007")
+
+    def test_check_0007_flags_specific_invalid_values(self):
+        errors = []
+        dekispart.check_0007({"stdUserID": "13", "stdID": "A002"}, errors)
+
+        self.assertEqual(len(errors), 1)
+        self.assertEqual(errors[0]["ユーザID"], "13")
+
+    def test_check_0007_allows_valid_eight_digit_numeric(self):
+        errors = []
+        dekispart.check_0007({"stdUserID": "12345678", "stdID": "A003"}, errors)
+
+        self.assertEqual(errors, [])
 
 if __name__ == "__main__":
     unittest.main()
