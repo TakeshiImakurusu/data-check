@@ -203,16 +203,24 @@ def check_0006(row, errors_list):
 
 def check_0007(row, errors_list):
     """
-    DEKISPART_CHK_0007: stdUserIDの桁数が1～7桁、9桁、13桁、15桁のいずれかである場合NG
+    DEKISPART_CHK_0007: stdUserIDが半角数字8桁以外、または不正な特定値の場合NG
     """
     user_id = str(row["stdUserID"]).strip()
     if not user_id: # Skip if blank
         return
 
-    user_id_len = len(user_id)
-    ng_lengths = [1, 2, 3, 4, 5, 6, 7, 9, 13, 15]
+    is_half_width_digits = user_id.isascii() and user_id.isdigit()
+    invalid_specific_values = {"9", "13", "15"}
 
-    if user_id_len in ng_lengths:
+    if user_id in invalid_specific_values:
+        _add_error_message(errors_list, row["stdUserID"], "DEKISPART_CHK_0007", row.get("stdID", ""))
+        return
+
+    if is_half_width_digits and 1 <= len(user_id) <= 7:
+        _add_error_message(errors_list, row["stdUserID"], "DEKISPART_CHK_0007", row.get("stdID", ""))
+        return
+
+    if not (is_half_width_digits and len(user_id) == 8):
         _add_error_message(errors_list, row["stdUserID"], "DEKISPART_CHK_0007", row.get("stdID", ""))
 
 def check_0008(row, errors_list, user_id_list):
