@@ -832,8 +832,10 @@ def check_0051(row, errors_list):
     _check_not_blank(row, errors_list, "stdName", "DEKISPART_CHK_0051")
 
 def check_0052(row, errors_list):
-    """DEKISPART_CHK_0052: stdKaiyakuがFALSEかつstdNamefが空白の場合NG"""
-    _check_not_blank(row, errors_list, "stdNamef", "DEKISPART_CHK_0052")
+    """DEKISPART_CHK_0052: stdNamefが空白の場合NG"""
+    value = row.get("stdNamef")
+    if pd.isna(value) or (isinstance(value, str) and value.strip() == ""):
+        _add_error_message(errors_list, row["stdUserID"], "DEKISPART_CHK_0052", row.get("stdID", ""))
 
 def check_0053(row, errors_list):
     """DEKISPART_CHK_0053: stdKaiyakuがFALSEかつstdZipが空白の場合NG"""
