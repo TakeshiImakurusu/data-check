@@ -44,9 +44,9 @@
     "DEKISPART_CHK_0007": {
         "series": "DEKISPART",
         "name": "stdUserID桁数・数値・特定値チェック",
-        "user_message": "stdUserIDが半角1～7桁の数字ではない、または不正な値です。",
+        "user_message": "stdUserIDが半角8桁の数字ではない、または不正な値です。",
         "severity": "エラー",
-        "description": "stdUserIDは半角数字で1～7桁である必要があります。また、stdUserIDの値が「9」、「13」、「15」のいずれかである場合は不正です。これらの条件に合致しない場合に検出されます。"
+        "description": "stdUserIDは半角数字8桁である必要があります。stdUserIDの値が半角数字1～7桁、または「9」「13」「15」のいずれかである場合は不正です。これらの条件に合致した場合に検出されます。"
     },
     "DEKISPART_CHK_0008": {
         "series": "DEKISPART",
@@ -277,7 +277,7 @@
         "name": "stdTselに紐づく担当者名の先頭文字チェック",
         "user_message": "担当者コードに紐づく担当者名に'×'または'・'があります。",
         "severity": "エラー",
-        "description": "stdKaiyakuがFALSEの場合、stdTsel（担当者コード）に紐づく担当者マスタの担当者名の先頭が、「×」または「・」である場合に検出されます。これらは担当者名として不適切です。"
+        "description": "stdTsel（担当者コード）に紐づく担当者マスタの担当者名の先頭が「×」または「・」である場合に検出されます。これらは担当者名として不適切です。"
     },
     "DEKISPART_CHK_0041": {
         "series": "DEKISPART",
@@ -358,10 +358,10 @@
     },
     "DEKISPART_CHK_0052": {
         "series": "DEKISPART",
-        "name": "stdKaiyaku FALSE時のstdNamef空白チェック",
-        "user_message": "stdKaiyakuがFALSEの場合、stdNamefは空白であってはなりません。",
+        "name": "stdNamef空白チェック",
+        "user_message": "stdNamefは空白であってはなりません。",
         "severity": "エラー",
-        "description": "stdKaiyakuがFALSE（退会ユーザーではない）の場合、stdNamefは空白であってはなりません。stdNamefは必須項目です。"
+        "description": "stdNamefは必須項目です。"
     },
     "DEKISPART_CHK_0053": {
         "series": "DEKISPART",
@@ -372,10 +372,10 @@
     },
     "DEKISPART_CHK_0054": {
         "series": "DEKISPART",
-        "name": "stdKaiyaku FALSE時のstdAdd空白チェック",
-        "user_message": "stdKaiyakuがFALSEの場合、stdAddは空白であってはなりません。",
+        "name": "stdAdd空白チェック",
+        "user_message": "stdAddは空白であってはなりません。",
         "severity": "エラー",
-        "description": "stdKaiyakuがFALSE（退会ユーザーではない）の場合、stdAddは空白であってはなりません。stdAddは必須項目です。"
+        "description": "stdAddは必須項目です。空白の場合は入力してください。"
     },
     "DEKISPART_CHK_0055": {
         "series": "DEKISPART",

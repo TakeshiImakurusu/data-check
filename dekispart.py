@@ -203,16 +203,24 @@ def check_0006(row, errors_list):
 
 def check_0007(row, errors_list):
     """
-    DEKISPART_CHK_0007: stdUserIDの桁数が1～7桁、9桁、13桁、15桁のいずれかである場合NG
+    DEKISPART_CHK_0007: stdUserIDが半角数字8桁以外、または不正な特定値の場合NG
     """
     user_id = str(row["stdUserID"]).strip()
     if not user_id: # Skip if blank
         return
 
-    user_id_len = len(user_id)
-    ng_lengths = [1, 2, 3, 4, 5, 6, 7, 9, 13, 15]
+    is_half_width_digits = user_id.isascii() and user_id.isdigit()
+    invalid_specific_values = {"9", "13", "15"}
 
-    if user_id_len in ng_lengths:
+    if user_id in invalid_specific_values:
+        _add_error_message(errors_list, row["stdUserID"], "DEKISPART_CHK_0007", row.get("stdID", ""))
+        return
+
+    if is_half_width_digits and 1 <= len(user_id) <= 7:
+        _add_error_message(errors_list, row["stdUserID"], "DEKISPART_CHK_0007", row.get("stdID", ""))
+        return
+
+    if not (is_half_width_digits and len(user_id) == 8):
         _add_error_message(errors_list, row["stdUserID"], "DEKISPART_CHK_0007", row.get("stdID", ""))
 
 def check_0008(row, errors_list, duplicate_user_ids):
@@ -722,7 +730,7 @@ def check_0039_sales_master_related(row, errors_list, sales_master_list):
 
 def check_0040(row, errors_list, sales_person_dict):
     """
-    DEKISPART_CHK_0040: stdKaiyakuがFALSEかつstdTselに×または・が含まれている場合NG
+    DEKISPART_CHK_0040: stdTselに紐づく担当者名の先頭が×または・の場合NG
     """
     std_tsel_code = str(row["stdTsel"]).strip()
     person_record = sales_person_dict.get(std_tsel_code)
@@ -736,8 +744,7 @@ def check_0040(row, errors_list, sales_person_dict):
     )
 
     if (
-        row["stdKaiyaku"] == False
-        and person_name
+        person_name
         and (person_name.startswith("×") or person_name.startswith("・"))
     ):
         _add_error_message(errors_list, row["stdUserID"], "DEKISPART_CHK_0040", row.get("stdID", ""))
@@ -839,8 +846,10 @@ def check_0051(row, errors_list):
     _check_not_blank(row, errors_list, "stdName", "DEKISPART_CHK_0051")
 
 def check_0052(row, errors_list):
-    """DEKISPART_CHK_0052: stdKaiyakuがFALSEかつstdNamefが空白の場合NG"""
-    _check_not_blank(row, errors_list, "stdNamef", "DEKISPART_CHK_0052")
+    """DEKISPART_CHK_0052: stdNamefが空白の場合NG"""
+    value = row.get("stdNamef")
+    if pd.isna(value) or (isinstance(value, str) and value.strip() == ""):
+        _add_error_message(errors_list, row["stdUserID"], "DEKISPART_CHK_0052", row.get("stdID", ""))
 
 def check_0053(row, errors_list):
     """DEKISPART_CHK_0053: stdZipが空白の場合NG"""
@@ -849,8 +858,10 @@ def check_0053(row, errors_list):
         _add_error_message(errors_list, row["stdUserID"], "DEKISPART_CHK_0053", row.get("stdID", ""))
 
 def check_0054(row, errors_list):
-    """DEKISPART_CHK_0054: stdKaiyakuがFALSEかつstdAddが空白の場合NG"""
-    _check_not_blank(row, errors_list, "stdAdd", "DEKISPART_CHK_0054")
+    """DEKISPART_CHK_0054: stdAddが空白の場合NG"""
+    std_add_value = row.get("stdAdd")
+    if pd.isna(std_add_value) or str(std_add_value).strip() == "":
+        _add_error_message(errors_list, row["stdUserID"], "DEKISPART_CHK_0054", row.get("stdID", ""))
 
 def check_0055(row, errors_list):
     """DEKISPART_CHK_0055: stdKaiyakuがFALSEかつstdTellが空白の場合NG"""
