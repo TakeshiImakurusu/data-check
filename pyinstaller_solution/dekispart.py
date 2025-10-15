@@ -718,7 +718,7 @@ def check_0039_sales_master_related(row, errors_list, sales_master_list):
 
 def check_0040(row, errors_list):
     """
-    DEKISPART_CHK_0040: stdKaiyakuがFALSEかつstdTselに×または・が含まれている場合NG
+    DEKISPART_CHK_0040: stdTselに紐づく担当者名の先頭が×または・の場合NG
     """
     #担当者マスタリストを取得する
     sales_person_list = load_sales_person_list_from_csv()
@@ -734,7 +734,7 @@ def check_0040(row, errors_list):
     std_tsel_code = str(row["stdTsel"]).strip()
     if std_tsel_code in sales_person_dict:
         person_name = sales_person_dict[std_tsel_code]
-        if row["stdKaiyaku"] == False and (person_name.startswith("×") or person_name.startswith("・")):
+        if person_name.startswith("×") or person_name.startswith("・"):
             _add_error_message(errors_list, row["stdUserID"], "DEKISPART_CHK_0040", row.get("stdID", ""))
 
 def get_salKName2K_from_salCode(sal_code: str) -> str | None:

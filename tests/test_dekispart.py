@@ -147,6 +147,20 @@ class DekispartTests(unittest.TestCase):
         self.assertTrue(all(result["シリーズ"] == "DEKISPART"))
         self.assertEqual(set(result["保守整理番号"]), {"A001"})
 
+    def test_check_0040_ignores_kaiyaku_status(self):
+        errors = []
+        row = {
+            "stdTsel": "SEL1",
+            "stdUserID": "01234567",
+            "stdID": "A001",
+            "stdKaiyaku": True,
+        }
+        sales_person_dict = {"SEL1": {"担当者名": "・田中"}}
+
+        dekispart.check_0040(row, errors, sales_person_dict)
+
+        self.assertEqual([error["チェックID"] for error in errors], ["DEKISPART_CHK_0040"])
+
 
 if __name__ == "__main__":
     unittest.main()
