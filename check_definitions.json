@@ -365,10 +365,10 @@
     },
     "DEKISPART_CHK_0053": {
         "series": "DEKISPART",
-        "name": "stdKaiyaku FALSE時のstdZip空白チェック",
-        "user_message": "stdKaiyakuがFALSEの場合、stdZipは空白であってはなりません。",
+        "name": "stdZip空白チェック",
+        "user_message": "stdZipは空白であってはなりません。",
         "severity": "エラー",
-        "description": "stdKaiyakuがFALSE（退会ユーザーではない）の場合、stdZipは空白であってはなりません。stdZipは必須項目です。"
+        "description": "stdZipは必須項目です。空白の場合は修正してください。"
     },
     "DEKISPART_CHK_0054": {
         "series": "DEKISPART",
