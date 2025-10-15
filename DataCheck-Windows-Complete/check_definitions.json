@@ -358,10 +358,10 @@
     },
     "DEKISPART_CHK_0052": {
         "series": "DEKISPART",
-        "name": "stdKaiyaku FALSE時のstdNamef空白チェック",
-        "user_message": "stdKaiyakuがFALSEの場合、stdNamefは空白であってはなりません。",
+        "name": "stdNamef空白チェック",
+        "user_message": "stdNamefは空白であってはなりません。",
         "severity": "エラー",
-        "description": "stdKaiyakuがFALSE（退会ユーザーではない）の場合、stdNamefは空白であってはなりません。stdNamefは必須項目です。"
+        "description": "stdNamefは必須項目です。"
     },
     "DEKISPART_CHK_0053": {
         "series": "DEKISPART",
