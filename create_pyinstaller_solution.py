@@ -23,8 +23,8 @@ def create_pyinstaller_solution():
     # 既存ファイルをコピー
     required_files = [
         'data_check.py', 'dekispart.py', 'innosite.py', 
-        'dekispart_school.py', 'cloud.py', 'app_settings.json', 
-        'check_definitions.json'
+        'dekispart_school.py', 'cloud.py', 'common.py', 'constants.py',
+        'app_settings.json', 'check_definitions.json'
     ]
     
     for file_name in required_files:
@@ -61,6 +61,8 @@ for module_name in SERIES_MODULE_NAMES:
     
     new_import_section = '''# 各シリーズのチェックロジックをインポート（PyInstaller対応版）
 # 静的インポートでPyInstallerが依存関係を検出できるようにする
+import common
+import constants
 import dekispart
 import innosite  
 import dekispart_school
@@ -105,6 +107,10 @@ a = Analysis(
         ('input_file', 'input_file'),
     ],
     hiddenimports=[
+        # 共通モジュール
+        'common',
+        'constants',
+        
         # 明示的にモジュールを指定
         'dekispart',
         'innosite', 

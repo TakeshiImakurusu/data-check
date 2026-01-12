@@ -13,6 +13,10 @@ a = Analysis(
         ('input_file', 'input_file'),
     ],
     hiddenimports=[
+        # 共通モジュール
+        'common',
+        'constants',
+        
         # 明示的にモジュールを指定
         'dekispart',
         'innosite', 

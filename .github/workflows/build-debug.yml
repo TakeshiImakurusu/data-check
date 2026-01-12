@@ -59,6 +59,8 @@ jobs:
         echo "        ('check_definitions.json', '.')," >> data_check_debug.spec
         echo "    ]," >> data_check_debug.spec
         echo "    hiddenimports=[" >> data_check_debug.spec
+        echo "        # Common modules" >> data_check_debug.spec
+        echo "        'common', 'constants'," >> data_check_debug.spec
         echo "        # Application modules" >> data_check_debug.spec
         echo "        'dekispart', 'innosite', 'dekispart_school', 'cloud'," >> data_check_debug.spec
         echo "        # GUI modules" >> data_check_debug.spec
@@ -124,6 +126,8 @@ jobs:
         echo "        ('check_definitions.json', '.')," >> data_check_noconsole.spec
         echo "    ]," >> data_check_noconsole.spec
         echo "    hiddenimports=[" >> data_check_noconsole.spec
+        echo "        # Common modules" >> data_check_noconsole.spec
+        echo "        'common', 'constants'," >> data_check_noconsole.spec
         echo "        # Application modules" >> data_check_noconsole.spec
         echo "        'dekispart', 'innosite', 'dekispart_school', 'cloud'," >> data_check_noconsole.spec
         echo "        # GUI modules" >> data_check_noconsole.spec
@@ -218,6 +222,8 @@ jobs:
           check_definitions.json
           config.ini
           input_file/
+          common.py
+          constants.py
           dekispart.py
           innosite.py
           dekispart_school.py

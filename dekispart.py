@@ -12,41 +12,23 @@ import logging
 import configparser
 from dekispart_school import fetch_data_from_db
 
+# 共通モジュールからDB接続ヘルパー関数をインポート
+from common import (
+    _normalize_odbc_driver,
+    _enable_deprecated_tls_if_requested,
+    _build_sqlserver_conn_str,
+    get_config,
+)
 
+# 定数モジュールをインポート
+from constants import (
+    DealerCode,
+    PaymentRoute,
+    SeriesName,
+    InvalidDealerMarker,
+    BikoKeyword,
+)
 
-def _normalize_odbc_driver(value: str) -> str:
-    driver = value.strip()
-    if driver.startswith('{') and driver.endswith('}'):
-        driver = driver[1:-1]
-    return driver
-
-
-def _enable_deprecated_tls_if_requested(db_config: configparser.SectionProxy) -> None:
-    try:
-        allow = db_config.getboolean('allow_deprecated_tls')
-    except (ValueError, configparser.NoOptionError):
-        allow = False
-    if allow:
-        os.environ['ODBCIGNOREDEPRECATEDTLS'] = '1'
-
-
-def _build_sqlserver_conn_str(db_config: configparser.SectionProxy) -> str:
-    _enable_deprecated_tls_if_requested(db_config)
-    driver = _normalize_odbc_driver(db_config['driver'])
-    parts = [
-        f"DRIVER={{{driver}}}",
-        f"SERVER={db_config['server']}",
-        f"DATABASE={db_config['database']}",
-        f"UID={db_config['uid']}",
-        f"PWD={db_config['pwd']}"
-    ]
-    trust_flag = db_config.get('trust_server_certificate', '').strip()
-    if trust_flag:
-        parts.append(f"TrustServerCertificate={trust_flag}")
-    encrypt_flag = db_config.get('encrypt', '').strip()
-    if encrypt_flag:
-        parts.append(f"Encrypt={encrypt_flag}")
-    return ';'.join(parts) + ';'
 
 # ログ設定
 # 実行ファイルと同じディレクトリにログを出力する例
@@ -59,8 +41,7 @@ logging.basicConfig(
 
 # DBからデータを取得
 def fetch_data():
-    config = configparser.ConfigParser()
-    config.read('config.ini')
+    config = get_config()
     db_config = config['DEKISPART_MNT_DB']
 
     conn_str = _build_sqlserver_conn_str(db_config)
@@ -80,8 +61,7 @@ def fetch_data():
     return df
 
 def get_sales_master_data():
-    config = configparser.ConfigParser()
-    config.read('config.ini')
+    config = get_config()
     db_config = config['DEKISPART_MNT_DB']
 
     conn_str = _build_sqlserver_conn_str(db_config)
@@ -102,9 +82,9 @@ def get_sales_master_data():
 def _add_error_message(error_messages, user_id, check_id, maintenance_id=None):
     """共通のエラーメッセージを追加するヘルパー関数（保守整理番号を含む）"""
     error_messages.append({
-        "シリーズ": "DEKISPART",
+        "シリーズ": SeriesName.DEKISPART,
         "ユーザID": user_id,
-        "保守整理番号": maintenance_id if maintenance_id else "",  # 保守整理番号を追加
+        "保守整理番号": maintenance_id if maintenance_id else "",
         "チェックID": check_id
     })
 
@@ -113,9 +93,8 @@ def get_mysql_connection():
     MySQL（イノサイト）への接続を取得する関数
     innosite.pyのfetch_data関数を参考に実装
     """
-    config = configparser.ConfigParser()
-    config.read('config.ini')
-    db_config = config['KSMAIN2_MYSQL']  # KSMAIN2_MYSQLに変更
+    config = get_config()
+    db_config = config['KSMAIN2_MYSQL']
 
     return pymysql.connect(
         host=db_config['host'],
@@ -130,9 +109,9 @@ def get_sqlserver_connection():
     SQL Server（デキスパート）への接続を取得する関数
     他のチェック関数でも使用可能
     """
-    config = configparser.ConfigParser()
-    config.read('config.ini')
+    config = get_config()
     db_config = config['DEKISPART_MNT_DB']
+
 
     conn_str = _build_sqlserver_conn_str(db_config)
     return pyodbc.connect(conn_str)

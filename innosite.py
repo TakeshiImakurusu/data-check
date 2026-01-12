@@ -9,47 +9,27 @@ import configparser
 import re
 import pyodbc
 
+# 共通モジュールからDB接続ヘルパー関数をインポート
+from common import (
+    _normalize_odbc_driver,
+    _enable_deprecated_tls_if_requested,
+    _build_sqlserver_conn_str,
+    get_config,
+)
 
-def _normalize_odbc_driver(value: str) -> str:
-    driver = value.strip()
-    if driver.startswith('{') and driver.endswith('}'):
-        driver = driver[1:-1]
-    return driver
+# 定数モジュールをインポート
+from constants import (
+    DealerCode,
+    PaymentRoute,
+    SeriesName,
+)
 
-
-def _enable_deprecated_tls_if_requested(db_config: configparser.SectionProxy) -> None:
-    try:
-        allow = db_config.getboolean('allow_deprecated_tls')
-    except (ValueError, configparser.NoOptionError):
-        allow = False
-    if allow:
-        os.environ['ODBCIGNOREDEPRECATEDTLS'] = '1'
-
-
-def _build_sqlserver_conn_str(db_config: configparser.SectionProxy) -> str:
-    _enable_deprecated_tls_if_requested(db_config)
-    driver = _normalize_odbc_driver(db_config['driver'])
-    parts = [
-        f"DRIVER={{{driver}}}",
-        f"SERVER={db_config['server']}",
-        f"DATABASE={db_config['database']}",
-        f"UID={db_config['uid']}",
-        f"PWD={db_config['pwd']}"
-    ]
-    trust_flag = db_config.get('trust_server_certificate', '').strip()
-    if trust_flag:
-        parts.append(f"TrustServerCertificate={trust_flag}")
-    encrypt_flag = db_config.get('encrypt', '').strip()
-    if encrypt_flag:
-        parts.append(f"Encrypt={encrypt_flag}")
-    return ';'.join(parts) + ';'
 
 # INNOSiTEデータを取得
 def fetch_data():
 
     # MySQLへの接続
-    config = configparser.ConfigParser()
-    config.read('config.ini')
+    config = get_config()
     db_config = config['KSMAIN2_MYSQL']
 
     conn = pymysql.connect(
@@ -75,8 +55,7 @@ def fetch_data():
 # 営業データを取得
 def fetch_excluded_sales_data():
     # MySQLへの接続
-    config = configparser.ConfigParser()
-    config.read('config.ini')
+    config = get_config()
     db_config = config['KSMAIN_MYSQL']
 
     conn = pymysql.connect(
@@ -102,8 +81,7 @@ def fetch_excluded_sales_data():
 # 倒産している販売店データ取得
 def fetch_bankrupt_shop_data():
     # MySQLへの接続
-    config = configparser.ConfigParser()
-    config.read('config.ini')
+    config = get_config()
     db_config = config['KSMAIN_MYSQL']
 
     conn = pymysql.connect(
@@ -128,8 +106,7 @@ def fetch_bankrupt_shop_data():
 
 # 保守DBからデータを取得
 def fetch_hosyu_data():
-    config = configparser.ConfigParser()
-    config.read('config.ini')
+    config = get_config()
     db_config = config['DEKISPART_MNT_DB']
 
     conn_str = _build_sqlserver_conn_str(db_config)
@@ -149,8 +126,7 @@ def fetch_hosyu_data():
     return df
 
 def get_sales_master_data():
-    config = configparser.ConfigParser()
-    config.read('config.ini')
+    config = get_config()
     db_config = config['DEKISPART_MNT_DB']
 
     conn_str = _build_sqlserver_conn_str(db_config)
@@ -178,7 +154,7 @@ def get_maintenance_id_address_map():
     # fetch_hosyu_dataの結果がDataFrameであることを前提としています。
     for index, row_hosyu in fetch_hosyu_data().iterrows():
         hosyu_data_map[str(row_hosyu["stdID"]).strip()] = str(row_hosyu["stdAdd"]).strip()
-        return hosyu_data_map
+    return hosyu_data_map
     
 # 保守DB情報から整理番号、営業担当のマッピングリスト取得
 def get_maintenance_id_salses_representative_map():
@@ -190,7 +166,7 @@ def get_maintenance_id_salses_representative_map():
     # fetch_hosyu_dataの結果がDataFrameであることを前提としています。
     for index, row_hosyu in fetch_hosyu_data().iterrows():
         hosyu_data_map[str(row_hosyu["stdID"]).strip()] = str(row_hosyu["stdTselNo"]).strip()
-        return hosyu_data_map
+    return hosyu_data_map
 
 def get_maintenance_id_sale1_map():
     """

@@ -9,40 +9,20 @@ import os
 import traceback # Import traceback for detailed error logging
 import configparser
 
+# 共通モジュールからDB接続ヘルパー関数をインポート
+from common import (
+    _normalize_odbc_driver,
+    _enable_deprecated_tls_if_requested,
+    _build_sqlserver_conn_str,
+    get_config,
+)
 
-def _normalize_odbc_driver(value: str) -> str:
-    driver = value.strip()
-    if driver.startswith('{') and driver.endswith('}'):
-        driver = driver[1:-1]
-    return driver
+# 定数モジュールをインポート
+from constants import (
+    SeriesName,
+    BikoKeyword,
+)
 
-
-def _enable_deprecated_tls_if_requested(db_config: configparser.SectionProxy) -> None:
-    try:
-        allow = db_config.getboolean('allow_deprecated_tls')
-    except (ValueError, configparser.NoOptionError):
-        allow = False
-    if allow:
-        os.environ['ODBCIGNOREDEPRECATEDTLS'] = '1'
-
-
-def _build_sqlserver_conn_str(db_config: configparser.SectionProxy) -> str:
-    _enable_deprecated_tls_if_requested(db_config)
-    driver = _normalize_odbc_driver(db_config['driver'])
-    parts = [
-        f"DRIVER={{{driver}}}",
-        f"SERVER={db_config['server']}",
-        f"DATABASE={db_config['database']}",
-        f"UID={db_config['uid']}",
-        f"PWD={db_config['pwd']}"
-    ]
-    trust_flag = db_config.get('trust_server_certificate', '').strip()
-    if trust_flag:
-        parts.append(f"TrustServerCertificate={trust_flag}")
-    encrypt_flag = db_config.get('encrypt', '').strip()
-    if encrypt_flag:
-        parts.append(f"Encrypt={encrypt_flag}")
-    return ';'.join(parts) + ';'
 
 # グローバル変数として定義
 contract_fields = [
@@ -87,8 +67,7 @@ contract_start_fields = {
 
 # DBからデータを取得
 def fetch_data():
-    config = configparser.ConfigParser()
-    config.read('config.ini')
+    config = get_config()
     db_config = config['KSCLOUDDB']
 
     conn_str = _build_sqlserver_conn_str(db_config)
@@ -111,8 +90,7 @@ def fetch_data():
 # 営業データを取得
 def fetch_excluded_sales_data():
     # MySQLへの接続
-    config = configparser.ConfigParser()
-    config.read('config.ini')
+    config = get_config()
     db_config = config['KSMAIN_MYSQL']
 
     conn = pymysql.connect(
@@ -138,8 +116,7 @@ def fetch_excluded_sales_data():
 # ショップDBデータを取得
 def get_shop_db_data():
     # MySQLへの接続
-    config = configparser.ConfigParser()
-    config.read('config.ini')
+    config = get_config()
     db_config = config['KSMAIN_MYSQL']
 
     conn = pymysql.connect(

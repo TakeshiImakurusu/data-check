@@ -65,6 +65,7 @@ jobs:
         }
 
         $hiddenImports = @(
+          "        'common', 'constants',",
           "        'dekispart', 'innosite', 'dekispart_school', 'cloud',",
           "        'tkinter', 'tkinter.ttk', 'tkinter.messagebox', 'tkinter.filedialog',",
           "        'pandas', 'openpyxl', 'threading', 'datetime', 'json', 'os', 'sys', 'chardet'"
@@ -162,7 +163,7 @@ jobs:
         if (Test-Path "app_settings.json") { Copy-Item "app_settings.json" "release_package\" -Force }
         if (Test-Path "check_definitions.json") { Copy-Item "check_definitions.json" "release_package\" -Force }
         if (Test-Path "config.ini") { Copy-Item "config.ini" "release_package\" -Force }
-        @('dekispart.py', 'cloud.py', 'innosite.py', 'dekispart_school.py') | ForEach-Object {
+        @('common.py', 'constants.py', 'dekispart.py', 'cloud.py', 'innosite.py', 'dekispart_school.py') | ForEach-Object {
           if (Test-Path $_) {
             Copy-Item $_ "release_package\" -Force
           }

@@ -7,9 +7,99 @@ import os
 import sys
 import json
 import datetime
+import shutil
+from pathlib import Path
+
+
+def _get_runtime_root() -> Path:
+    """Return the directory where runtime-writable files should live."""
+    if getattr(sys, "frozen", False):  # PyInstaller runtime
+        return Path(sys.executable).resolve().parent
+    return Path(__file__).resolve().parent
+
+
+def _get_bundle_root() -> Path:
+    """Return the directory where bundled resources are located."""
+    if getattr(sys, "frozen", False) and hasattr(sys, "_MEIPASS"):
+        return Path(sys._MEIPASS)
+    return _get_runtime_root()
+
+
+RUNTIME_ROOT = _get_runtime_root()
+BUNDLE_ROOT = _get_bundle_root()
+
+if getattr(sys, "frozen", False):
+    try:
+        os.chdir(RUNTIME_ROOT)
+    except OSError:
+        # 変更できない場合はそのまま進行
+        pass
+
+
+def ensure_runtime_file(filename: str, default_text: str | None = None) -> Path:
+    """Ensure a runtime-writable copy of the bundled file exists and return its path."""
+    runtime_path = RUNTIME_ROOT / filename
+    if runtime_path.exists():
+        return runtime_path
+
+    bundle_path = BUNDLE_ROOT / filename
+
+    try:
+        runtime_path.parent.mkdir(parents=True, exist_ok=True)
+        if bundle_path.exists():
+            shutil.copy2(bundle_path, runtime_path)
+        elif default_text is not None:
+            runtime_path.write_text(default_text, encoding="utf-8")
+    except Exception as exc:  # noqa: BLE001 - ログ出力用の包括的例外捕捉
+        print(
+            f"[ERROR] ランタイムファイル '{filename}' を準備できませんでした: {exc}",
+            file=sys.stderr,
+        )
+
+    return runtime_path
+
+# 早期の引数チェック - GUI初期化やモジュールインポートの前に実行
+if __name__ == "__main__":
+    # --help または --test-build 引数がある場合はGUIを起動せずに適切に処理して終了
+    if "--help" in sys.argv:
+        print("Usage: DataCheck.exe [options]")
+        print("Options:")
+        print("  --help     Show this help message and exit.")
+        print("  --test-build    Test build mode for CI/CD systems.")
+        print("  (No other command-line options are currently supported for headless execution.)")
+        sys.exit(0)
+    
+    if "--test-build" in sys.argv:
+        print("DataCheck test build mode: Checking module imports and dependencies...")
+        # 必要なライブラリのチェック
+        required_libraries = {
+            "pyodbc": "pip install pyodbc",
+            "pandas": "pip install pandas",
+            "openpyxl": "pip install openpyxl",
+            "chardet": "pip install chardet",
+        }
+        
+        missing_libs = []
+        for lib, install_cmd in required_libraries.items():
+            try:
+                __import__(lib)
+                print(f"[OK] {lib}: OK")
+            except ImportError:
+                missing_libs.append(lib)
+                print(f"[ERROR] {lib}: Missing")
+        
+        if missing_libs:
+            print(f"Missing libraries: {', '.join(missing_libs)}")
+            sys.exit(1)
+        else:
+            print("[SUCCESS] All dependencies satisfied")
+            print("[SUCCESS] Test build completed successfully")
+            sys.exit(0)
 
 # 各シリーズのチェックロジックをインポート（PyInstaller対応版）
 # 静的インポートでPyInstallerが依存関係を検出できるようにする
+import common
+import constants
 import dekispart
 import innosite  
 import dekispart_school
@@ -25,43 +115,62 @@ globals()['dekispart'] = dekispart
 globals()['innosite'] = innosite
 globals()['dekispart_school'] = dekispart_school
 globals()['cloud'] = cloud
-
-# エラーハンドリング（既存コードとの互換性）
-try:
-    # インポートチェック（既存コードと同様の処理）
-    pass
-except ImportError as error:
-        messagebox.showerror(
-            "モジュールエラー",
-            (
-                f"シリーズチェックモジュール '{module_name}' の読み込み中にエラーが発生しました。\n"
-                f"{error}\n\nアプリケーションを終了します。"
-            ),
-        )
+    except ImportError as error:
+        # GUI環境でない場合は標準エラー出力へ、GUI環境では messagebox で表示
+        if os.environ.get('PYINSTALLER_BUILD') == '1' or os.environ.get('GITHUB_ACTIONS') == 'true':
+            print(f"シリーズチェックモジュール '{module_name}' の読み込み中にエラーが発生しました。\n{error}\nアプリケーションを終了します。", file=sys.stderr)
+        else:
+            messagebox.showerror(
+                "モジュールエラー",
+                (
+                    f"シリーズチェックモジュール '{module_name}' の読み込み中にエラーが発生しました。\n"
+                    f"{error}\n\nアプリケーションを終了します。"
+                ),
+            )
         sys.exit(1)
 
 if missing_series_modules or missing_dependencies:
-    error_messages = []
-    if missing_series_modules:
-        file_list = "\n".join(f"  - {name}.py" for name in missing_series_modules)
-        error_messages.append(
-            "以下のシリーズチェックモジュールが見つかりません。"
-            "同じディレクトリに配置されているか確認してください:\n"
-            f"{file_list}"
-        )
-    if missing_dependencies:
-        dep_list = "\n".join(f"  - {name}" for name in sorted(missing_dependencies))
-        install_hint = " pip install " + " ".join(sorted(missing_dependencies))
-        error_messages.append(
-            "以下の外部ライブラリが見つかりません。仮想環境を有効化した上で"
-            f"{install_hint} を実行してください:\n{dep_list}"
-        )
+    if os.environ.get('PYINSTALLER_BUILD') != '1' and os.environ.get('GITHUB_ACTIONS') != 'true':
+        error_messages = []
+        if missing_series_modules:
+            file_list = "\n".join(f"  - {name}.py" for name in missing_series_modules)
+            error_messages.append(
+                "以下のシリーズチェックモジュールが見つかりません。"
+                "同じディレクトリに配置されているか確認してください:\n"
+                f"{file_list}"
+            )
+        if missing_dependencies:
+            dep_list = "\n".join(f"  - {name}" for name in sorted(missing_dependencies))
+            install_hint = " pip install " + " ".join(sorted(missing_dependencies))
+            error_messages.append(
+                "以下の外部ライブラリが見つかりません。仮想環境を有効化した上で"
+                f"{install_hint} を実行してください:\n{dep_list}"
+            )
 
-    messagebox.showerror(
-        "モジュールエラー",
-        "\n\n".join(error_messages) + "\n\nアプリケーションを終了します。",
-    )
-    sys.exit(1)
+        messagebox.showerror(
+            "モジュールエラー",
+            "\n\n".join(error_messages) + "\n\nアプリケーションを終了します。",
+        )
+        sys.exit(1)
+    else:
+        # PyInstallerビルド中またはGitHub Actions環境ではメッセージボックスを表示せず、エラーログを出力して終了
+        error_messages = []
+        if missing_series_modules:
+            file_list = "\n".join(f"  - {name}.py" for name in missing_series_modules)
+            error_messages.append(
+                "以下のシリーズチェックモジュールが見つかりません。"
+                "同じディレクトリに配置されているか確認してください:\n"
+                f"{file_list}"
+            )
+        if missing_dependencies:
+            dep_list = "\n".join(f"  - {name}" for name in sorted(missing_dependencies))
+            install_hint = " pip install " + " ".join(sorted(missing_dependencies))
+            error_messages.append(
+                "以下の外部ライブラリが見つかりません:\n{dep_list}"
+            )
+        print("Build environment: Suppressing module error messagebox.", file=sys.stderr)
+        print("\n\n".join(error_messages), file=sys.stderr)
+        sys.exit(1)
 
 class DataCheckerApp:
     def __init__(self, master):
@@ -77,11 +186,12 @@ class DataCheckerApp:
         self.style = ttk.Style()
         self.style.theme_use("clam")
 
+        self.runtime_root = RUNTIME_ROOT
         self.aux_file_paths = {}
         self.font_size = 10 # デフォルトフォントサイズ
         self.theme = "default" # デフォルトテーマ
-        self.settings_file = "app_settings.json"
-        self.check_definitions_file = "check_definitions.json" # チェック定義ファイル名
+        self.settings_file = ensure_runtime_file("app_settings.json", default_text="{}")
+        self.check_definitions_file = ensure_runtime_file("check_definitions.json") # チェック定義ファイル名
         self.check_definitions = {} # チェック定義を格納する辞書
 
         # メニューオブジェクトへの参照を保持するための変数を初期化
@@ -304,8 +414,8 @@ class DataCheckerApp:
 
     def load_settings(self):
         """設定ファイルから補助ファイルのパスとフォントサイズを読み込む"""
-        if os.path.exists(self.settings_file):
-            with open(self.settings_file, 'r', encoding='utf-8') as f:
+        if self.settings_file.exists():
+            with self.settings_file.open('r', encoding='utf-8') as f:
                 try:
                     settings = json.load(f)
                     self.aux_file_paths = settings.get("aux_file_paths", {})
@@ -326,7 +436,7 @@ class DataCheckerApp:
             "font_size": self.font_size,
             "theme": self.theme,
         }
-        with open(self.settings_file, 'w', encoding='utf-8') as f:
+        with self.settings_file.open('w', encoding='utf-8') as f:
             json.dump(settings, f, ensure_ascii=False, indent=4)
         # messagebox.showinfo("設定保存", "設定を保存しました。") # change_font_sizeで個別にメッセージを出すのでコメントアウト
 
@@ -382,9 +492,9 @@ class DataCheckerApp:
 
     def load_check_definitions(self):
         """チェック定義ファイルを読み込む。存在しない場合はデフォルトを作成。"""
-        if os.path.exists(self.check_definitions_file):
+        if self.check_definitions_file.exists():
             try:
-                with open(self.check_definitions_file, 'r', encoding='utf-8') as f:
+                with self.check_definitions_file.open('r', encoding='utf-8') as f:
                     self.check_definitions = json.load(f)
             except json.JSONDecodeError:
                 messagebox.showwarning("設定エラー", "チェック定義ファイルの読み込みに失敗しました。ファイルが破損している可能性があります。デフォルト設定を再生成します。")
@@ -424,7 +534,8 @@ class DataCheckerApp:
     def save_check_definitions(self):
         """チェック定義をファイルに保存する"""
         try:
-            with open(self.check_definitions_file, 'w', encoding='utf-8') as f:
+            self.check_definitions_file.parent.mkdir(parents=True, exist_ok=True)
+            with self.check_definitions_file.open('w', encoding='utf-8') as f:
                 json.dump(self.check_definitions, f, ensure_ascii=False, indent=4)
         except Exception as e:
             messagebox.showerror("保存エラー", f"チェック定義ファイルの保存中にエラーが発生しました。\n詳細: {e}")
@@ -1246,11 +1357,18 @@ if __name__ == "__main__":
         try:
             __import__(lib)
         except ImportError:
-            messagebox.showerror("ライブラリ不足エラー",
-                                 f"'{lib}' がインストールされていません。\n\n"
-                                 f"コマンドプロンプトやターミナルで以下のコマンドを実行してインストールしてください:\n"
-                                 f"'{install_cmd}'\n\n"
-                                 f"アプリケーションを終了します。")
+            # GUI環境でない場合は標準エラー出力へ、GUI環境では messagebox で表示
+            if os.environ.get('PYINSTALLER_BUILD') == '1' or os.environ.get('GITHUB_ACTIONS') == 'true':
+                print(f"'{lib}' がインストールされていません。\n"
+                      f"コマンドプロンプトやターミナルで以下のコマンドを実行してインストールしてください:\n"
+                      f"'{install_cmd}'\n"
+                      f"アプリケーションを終了します。", file=sys.stderr)
+            else:
+                messagebox.showerror("ライブラリ不足エラー",
+                                     f"'{lib}' がインストールされていません。\n\n"
+                                     f"コマンドプロンプトやターミナルで以下のコマンドを実行してインストールしてください:\n"
+                                     f"'{install_cmd}'\n\n"
+                                     f"アプリケーションを終了します。")
             sys.exit(1)
 
     root = tk.Tk()

@@ -58,6 +58,8 @@ jobs:
         echo "        ('check_definitions.json', '.')," >> data_check.spec
         echo "    ]," >> data_check.spec
         echo "    hiddenimports=[" >> data_check.spec
+        echo "        # Common modules" >> data_check.spec
+        echo "        'common', 'constants'," >> data_check.spec
         echo "        # Application modules" >> data_check.spec
         echo "        'dekispart', 'innosite', 'dekispart_school', 'cloud'," >> data_check.spec
         echo "        # GUI modules" >> data_check.spec
@@ -136,6 +138,8 @@ jobs:
           check_definitions.json
           config.ini
           input_file/
+          common.py
+          constants.py
           dekispart.py
           innosite.py
           dekispart_school.py

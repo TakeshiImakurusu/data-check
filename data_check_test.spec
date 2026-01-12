@@ -12,12 +12,16 @@ a = Analysis(
         ('innosite.py', '.'),
         ('dekispart_school.py', '.'),
         ('cloud.py', '.'),
+        ('common.py', '.'),
+        ('constants.py', '.'),
     ],
     hiddenimports=[
         'dekispart', 'innosite', 'dekispart_school', 'cloud',
+        'common', 'constants',
         'tkinter', 'tkinter.ttk', 'tkinter.messagebox', 'tkinter.filedialog',
         'pandas', 'openpyxl', 'configparser', 'chardet'
     ],
+
     hookspath=[],
     runtime_hooks=[],
     excludes=[],
