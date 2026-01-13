@@ -176,6 +176,9 @@ jobs:
         if (Test-Path "app_settings.json") { Copy-Item "app_settings.json" "release_package\" -Force }
         if (Test-Path "check_definitions.json") { Copy-Item "check_definitions.json" "release_package\" -Force }
         if (Test-Path "config.ini") { Copy-Item "config.ini" "release_package\" -Force }
+        # ランチャースクリプトとバージョンファイルをコピー
+        if (Test-Path "DataCheck_Launcher.bat") { Copy-Item "DataCheck_Launcher.bat" "release_package\" -Force }
+        if (Test-Path ".version") { Copy-Item ".version" "release_package\" -Force }
         # Pythonソースファイルは不要（onedirモードではEXEに含まれる）
         if (Test-Path "input_file") {
           Write-Host "Copying input_file directory..."
