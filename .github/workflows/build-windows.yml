@@ -99,15 +99,22 @@ jobs:
           "pyz = PYZ(a.pure, a.zipped_data, cipher=block_cipher)",
           "",
           "exe = EXE(",
-          "    pyz, a.scripts, a.binaries, a.zipfiles, a.datas, [],",
+          "    pyz, a.scripts, [],",
+          "    exclude_binaries=True,",
           "    name='DataCheck',",
           "    debug=False,",
           "    bootloader_ignore_signals=False,",
           "    strip=False,",
           "    upx=False,",
-          "    runtime_tmpdir=None,",
           "    console=False,",
           "    disable_windowed_traceback=False",
+          ")",
+          "",
+          "coll = COLLECT(",
+          "    exe, a.binaries, a.zipfiles, a.datas,",
+          "    strip=False,",
+          "    upx=False,",
+          "    name='DataCheck'",
           ")"
         )
 
@@ -129,22 +136,22 @@ jobs:
           echo "dist directory contents:"
           Get-ChildItem dist -Recurse | Format-Table Name, Length
           
-          if (Test-Path "dist\DataCheck.exe") {
-            $size = (Get-Item "dist\DataCheck.exe").Length / 1MB
-            Write-Host "SUCCESS: DataCheck.exe created successfully"
+          if (Test-Path "dist\DataCheck\DataCheck.exe") {
+            $size = (Get-Item "dist\DataCheck\DataCheck.exe").Length / 1MB
+            Write-Host "SUCCESS: DataCheck.exe created successfully (onedir mode)"
             Write-Host "Size: $($size.ToString('F2')) MB"
             
             # Test EXE execution (basic check)
             echo ""
             echo "=== Testing EXE execution ==="
             try {
-              $process = Start-Process -FilePath "dist\DataCheck.exe" -ArgumentList "--help" -PassThru -Wait -WindowStyle Hidden
+              $process = Start-Process -FilePath "dist\DataCheck\DataCheck.exe" -ArgumentList "--help" -PassThru -Wait -WindowStyle Hidden
               echo "SUCCESS: EXE runs without immediate crash"
             } catch {
               echo "WARNING: EXE test failed: $_"
             }
           } else {
-            Write-Host "ERROR: DataCheck.exe not found"
+            Write-Host "ERROR: DataCheck.exe not found in dist\DataCheck\"
             exit 1
           }
         } else {
@@ -154,20 +161,22 @@ jobs:
 
     - name: Prepare distribution package
       run: |
-        Write-Host "Preparing release package..."
+        Write-Host "Preparing release package (onedir mode)..."
         if (Test-Path "release_package") {
           Remove-Item -Recurse -Force release_package -ErrorAction SilentlyContinue
         }
-        New-Item -ItemType Directory -Force -Path release_package | Out-Null
-        Copy-Item "dist\DataCheck.exe" "release_package\" -Force
+        # dist/DataCheck/ フォルダ全体をコピー（_internalフォルダ含む）
+        robocopy "dist\DataCheck" "release_package" /E /NFL /NDL /NJH /NJS /NP
+        $robocopyExit = $LASTEXITCODE
+        if ($robocopyExit -gt 3) {
+          Write-Error "robocopy failed with exit code $robocopyExit"
+          exit $robocopyExit
+        }
+        # 追加の設定ファイルをコピー
         if (Test-Path "app_settings.json") { Copy-Item "app_settings.json" "release_package\" -Force }
         if (Test-Path "check_definitions.json") { Copy-Item "check_definitions.json" "release_package\" -Force }
         if (Test-Path "config.ini") { Copy-Item "config.ini" "release_package\" -Force }
-        @('common.py', 'constants.py', 'dekispart.py', 'cloud.py', 'innosite.py', 'dekispart_school.py') | ForEach-Object {
-          if (Test-Path $_) {
-            Copy-Item $_ "release_package\" -Force
-          }
-        }
+        # Pythonソースファイルは不要（onedirモードではEXEに含まれる）
         if (Test-Path "input_file") {
           Write-Host "Copying input_file directory..."
           New-Item -ItemType Directory -Force -Path "release_package\input_file" | Out-Null
@@ -180,6 +189,8 @@ jobs:
         }
         if (Test-Path "DISTRIBUTION_README.md") { Copy-Item "DISTRIBUTION_README.md" "release_package\" -Force }
         Write-Host "Release package prepared in release_package/"
+        Write-Host "Package contents:"
+        Get-ChildItem release_package -Recurse | Measure-Object | Select-Object -ExpandProperty Count | ForEach-Object { Write-Host "Total files: $_" }
 
     - name: Upload Windows EXE Artifact
       uses: actions/upload-artifact@v4
