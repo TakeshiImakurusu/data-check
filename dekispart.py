@@ -308,7 +308,8 @@ def check_0017(row, errors_list):
     """
     DEKISPART_CHK_0017: stdSale1(販売店コード1)が空白でないこと
     """
-    if str(row["stdSale1"]).strip() == "":
+    std_sale1 = row["stdSale1"]
+    if pd.isna(std_sale1) or str(std_sale1).strip() == "":
         _add_error_message(errors_list, row["stdUserID"], "DEKISPART_CHK_0017", row.get("stdID", ""))
 
 def check_0018(row, errors_list):
