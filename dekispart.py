@@ -220,11 +220,25 @@ def check_0009(row, errors_list):
 def check_0010(row, errors_list, individual_list):
     """
     DEKISPART_CHK_0010: stdFlg4がTRUEかつstdNameに特定の文字が含まれている場合NG
+    法人名キーワード（株式、有限など）と個人名チェックリストの両方をチェック
     """
+    # 法人名キーワード（敬称が「様」の場合に会社名として不適切）
+    corporate_keywords = ["株式", "有限", "合同", "合資", "合名"]
+    
     if row["stdFlg4"] == True and row["stdName"]:
-        for keyword in individual_list:
-            if keyword in row["stdName"]:
+        std_name = str(row["stdName"])
+        
+        # 法人名キーワードのチェック
+        for keyword in corporate_keywords:
+            if keyword in std_name:
                 _add_error_message(errors_list, row["stdUserID"], "DEKISPART_CHK_0010", row.get("stdID", ""))
+                return  # 1つ見つかったら終了
+        
+        # 個人名チェックリストのチェック
+        for keyword in individual_list:
+            if keyword in std_name:
+                _add_error_message(errors_list, row["stdUserID"], "DEKISPART_CHK_0010", row.get("stdID", ""))
+                return  # 1つ見つかったら終了
 
 def check_0011(row, errors_list):
     """

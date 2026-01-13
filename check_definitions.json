@@ -67,7 +67,7 @@
         "name": "stdFlg4 TRUE時のstdName文字チェック",
         "user_message": "stdFlg4がTRUEの場合、stdNameに特定の文字が含まれています。",
         "severity": "エラー",
-        "description": "stdFlg4がTRUE（敬称が様）であり、かつstdName（ユーザー名1）に指定されたキーワード（特定の不適切な文字）が含まれている場合に検出されます。"
+        "description": "stdFlg4がTRUE（敬称が様）であり、かつstdName（ユーザー名1）に法人名キーワード（株式、有限、合同、合資、合名）または個人名チェックリストのキーワードが含まれている場合に検出されます。"
     },
     "DEKISPART_CHK_0011": {
         "series": "DEKISPART",
