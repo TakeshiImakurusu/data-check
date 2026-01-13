@@ -25,12 +25,13 @@ from constants import (
 
 
 # グローバル変数として定義
+# t_kscmainテーブルに存在する契約フィールドのみ（KC, KSAR, KDC, KNは別テーブル）
 contract_fields = [
     'DB_ContractInactive', 'SB_ContractInactive', 'FN_ContractInactive', 
     'SBT_ContractInactive', 'DBP_ContractInactive', 'SBR_ContractInactive', 
-    'KC_ContractInactive', 'DQC_ContractInactive', 'KSSCAN_ContractInactive', 
+    'DQC_ContractInactive', 'KSSCAN_ContractInactive', 
     'PMC_ContractInactive', 'CQC_ContractInactive', 'WLC_ContractInactive', 
-    'KTD_ContractInactive'
+    'KTD_ContractInactive', 'KDB_ContractInactive'
 ]
 
 contract_end_fields = {
@@ -40,13 +41,13 @@ contract_end_fields = {
     'SBT_ContractInactive': 'SBT_ContractEnd',
     'DBP_ContractInactive': 'DBP_ContractEnd',
     'SBR_ContractInactive': 'SBR_ContractEnd',
-    'KC_ContractInactive': 'KC_ContractEnd',
     'DQC_ContractInactive': 'DQC_ContractEnd',
     'KSSCAN_ContractInactive': 'KSSCAN_ContractEnd',
     'PMC_ContractInactive': 'PMC_ContractEnd',
     'CQC_ContractInactive': 'CQC_ContractEnd',
     'WLC_ContractInactive': 'WLC_ContractEnd',
-    'KTD_ContractInactive': 'KTD_ContractEnd'
+    'KTD_ContractInactive': 'KTD_ContractEnd',
+    'KDB_ContractInactive': 'KDB_ContractEnd'
 }
 
 contract_start_fields = {
@@ -56,13 +57,13 @@ contract_start_fields = {
     'SBT_ContractInactive': 'SBT_ContractStart',
     'DBP_ContractInactive': 'DBP_ContractStart',
     'SBR_ContractInactive': 'SBR_ContractStart',
-    'KC_ContractInactive': 'KC_ContractStart',
     'DQC_ContractInactive': 'DQC_ContractStart',
     'KSSCAN_ContractInactive': 'KSSCAN_ContractStart',
     'PMC_ContractInactive': 'PMC_ContractStart',
     'CQC_ContractInactive': 'CQC_ContractStart',
     'WLC_ContractInactive': 'WLC_ContractStart',
-    'KTD_ContractInactive': 'KTD_ContractStart'
+    'KTD_ContractInactive': 'KTD_ContractStart',
+    'KDB_ContractInactive': 'KDB_ContractStart'
 }
 
 # DBからデータを取得
@@ -299,7 +300,8 @@ def validate_data(df, progress_callback):
         # CHK_0011: 配筋検査で複数年の場合に記載がない場合はNG
         check_inactive_and_inprogress(row, "SBR_ContractInactive", "SBR_UpdateInprogress", error_messages, "CLOUD_CHK_0011")
         # CHK_0011: KENTEM-CONNECTで複数年の場合に記載がない場合はNG
-        check_inactive_and_inprogress(row, "KC_ContractInactive", "KC_UpdateInprogress", error_messages, "CLOUD_CHK_0011")
+        # ※ KC関連データは別テーブル（t_KentemConnectContract）のため一時的に無効化
+        # check_inactive_and_inprogress(row, "KC_ContractInactive", "KC_UpdateInprogress", error_messages, "CLOUD_CHK_0011")
         # CHK_0011: 出来形管理クラウドで複数年の場合に記載がない場合はNG
         check_inactive_and_inprogress(row, "DQC_ContractInactive", "DQC_UpdateInprogress", error_messages, "CLOUD_CHK_0011")
         # CHK_0011: 快測Scanで複数年の場合に記載がない場合はNG
