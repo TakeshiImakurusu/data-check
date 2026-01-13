@@ -137,7 +137,7 @@
         "name": "stdSale1「000286」とstdSale2の組み合わせチェック",
         "user_message": "stdSale1が000286の場合、stdSale2はkeで始まる必要があります。",
         "severity": "エラー",
-        "description": "stdSale1が「000286」の場合、stdSale2（販売店コード2）は「ke」で始まる必要があります。この条件に合致しない場合に検出されます。"
+        "description": "stdSale1が「000286」の場合、stdSale2（販売店コード2）は「ke」で始まる必要があります。また、stdSale2が「ke」で始まる場合、stdSale1は「000286」である必要があります。この条件に合致しない場合に検出されます。"
     },
     "DEKISPART_CHK_0021": {
         "series": "DEKISPART",
