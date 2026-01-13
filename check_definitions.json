@@ -188,13 +188,6 @@
         "severity": "エラー",
         "description": "stdKaiyakuがFALSEの場合、stdSaleNam1（販売店名1）に紐づく得意先マスタの得意先名1の先頭が、特定の不正な記号（例: 半角スペース、全角スペース、スラッシュ、アスタリスク、ハイフン、ピリオド、プラス、ドル記号など）で始まっている場合に検出されます。これらは得意先名として不適切です。"
     },
-    "DEKISPART_CHK_0028": {
-        "series": "DEKISPART",
-        "name": "stdSbiko「年」表記チェック",
-        "user_message": "stdSbikoには「年」が含まれている必要があります。",
-        "severity": "警告",
-        "description": "stdKaiyakuがFALSEでstdAcyear（加入年数）が1以外の場合、stdSbikoが空白でなく、「年」という文字が含まれていない場合に検出されます。備考欄の記載に「年」の表記があるか確認します。"
-    },
     "DEKISPART_CHK_0029": {
         "series": "DEKISPART",
         "name": "stdFlg3 TRUEチェック",

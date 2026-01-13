@@ -7,3 +7,12 @@ __pycache__/
 application.log
 input_file/
 temp/
+
+# Build artifacts
+pyinstaller_solution/
+DataCheck-Windows-Complete/
+DataCheck-Windows-Simple/
+DataCheck-Windows-Both-Versions/
+dist/
+build/
+*.spec
