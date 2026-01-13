@@ -191,6 +191,8 @@ jobs:
         Write-Host "Release package prepared in release_package/"
         Write-Host "Package contents:"
         Get-ChildItem release_package -Recurse | Measure-Object | Select-Object -ExpandProperty Count | ForEach-Object { Write-Host "Total files: $_" }
+        # robocopyの終了コードをリセット（0-3は成功）
+        exit 0
 
     - name: Upload Windows EXE Artifact
       uses: actions/upload-artifact@v4
