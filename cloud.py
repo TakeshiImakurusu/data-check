@@ -25,11 +25,11 @@ from constants import (
 
 
 # グローバル変数として定義
-# t_kscmainテーブルに存在する契約フィールドのみ（KC, KSAR, KDC, KNは別テーブル）
+# t_kscmainテーブル + JOINで取得する契約フィールド
 contract_fields = [
     'DB_ContractInactive', 'SB_ContractInactive', 'FN_ContractInactive', 
     'SBT_ContractInactive', 'DBP_ContractInactive', 'SBR_ContractInactive', 
-    'DQC_ContractInactive', 'KSSCAN_ContractInactive', 
+    'KC_ContractInactive', 'DQC_ContractInactive', 'KSSCAN_ContractInactive', 
     'PMC_ContractInactive', 'CQC_ContractInactive', 'WLC_ContractInactive', 
     'KTD_ContractInactive', 'KDB_ContractInactive'
 ]
@@ -41,6 +41,7 @@ contract_end_fields = {
     'SBT_ContractInactive': 'SBT_ContractEnd',
     'DBP_ContractInactive': 'DBP_ContractEnd',
     'SBR_ContractInactive': 'SBR_ContractEnd',
+    'KC_ContractInactive': 'KC_ContractEnd',
     'DQC_ContractInactive': 'DQC_ContractEnd',
     'KSSCAN_ContractInactive': 'KSSCAN_ContractEnd',
     'PMC_ContractInactive': 'PMC_ContractEnd',
@@ -57,6 +58,7 @@ contract_start_fields = {
     'SBT_ContractInactive': 'SBT_ContractStart',
     'DBP_ContractInactive': 'DBP_ContractStart',
     'SBR_ContractInactive': 'SBR_ContractStart',
+    'KC_ContractInactive': 'KC_ContractStart',
     'DQC_ContractInactive': 'DQC_ContractStart',
     'KSSCAN_ContractInactive': 'KSSCAN_ContractStart',
     'PMC_ContractInactive': 'PMC_ContractStart',
@@ -66,7 +68,7 @@ contract_start_fields = {
     'KDB_ContractInactive': 'KDB_ContractStart'
 }
 
-# DBからデータを取得
+# DBからデータを取得（別テーブルをJOINして取得）
 def fetch_data():
     config = get_config()
     db_config = config['KSCLOUDDB']
@@ -74,7 +76,20 @@ def fetch_data():
     conn_str = _build_sqlserver_conn_str(db_config)
     conn = pyodbc.connect(conn_str)
     cursor = conn.cursor()
-    cursor.execute("SELECT * FROM t_kscmain ORDER BY ID ASC")  # 任意のクエリ
+    
+    # t_kscmainと別テーブルをLEFT JOINで結合
+    query = """
+    SELECT 
+        m.*,
+        kc.KC_ContractInactive,
+        kc.KC_ContractStart,
+        kc.KC_ContractEnd,
+        kc.KC_NotesForMultipleYears
+    FROM t_kscmain m
+    LEFT JOIN t_KentemConnectContract kc ON m.ManagementCode = kc.KC_ManagementCode
+    ORDER BY m.ID ASC
+    """
+    cursor.execute(query)
     columns = [column[0] for column in cursor.description]  # カラム名を取得
     data = cursor.fetchall()
     conn.close()
@@ -300,7 +315,7 @@ def validate_data(df, progress_callback):
         # CHK_0011: 配筋検査で複数年の場合に記載がない場合はNG
         check_inactive_and_inprogress(row, "SBR_ContractInactive", "SBR_UpdateInprogress", error_messages, "CLOUD_CHK_0011")
         # CHK_0011: KENTEM-CONNECTで複数年の場合に記載がない場合はNG
-        # ※ KC関連データは別テーブル（t_KentemConnectContract）のため一時的に無効化
+        # ※ t_KentemConnectContractテーブルにKC_UpdateInprogressカラムが存在しないため無効化
         # check_inactive_and_inprogress(row, "KC_ContractInactive", "KC_UpdateInprogress", error_messages, "CLOUD_CHK_0011")
         # CHK_0011: 出来形管理クラウドで複数年の場合に記載がない場合はNG
         check_inactive_and_inprogress(row, "DQC_ContractInactive", "DQC_UpdateInprogress", error_messages, "CLOUD_CHK_0011")
