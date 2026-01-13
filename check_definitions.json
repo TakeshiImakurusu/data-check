@@ -130,7 +130,7 @@
         "name": "stdSale1「004359」とstdSale2の組み合わせチェック",
         "user_message": "stdSale1が004359の場合、stdSale2は00rで始まる必要があります。",
         "severity": "エラー",
-        "description": "stdSale1が「004359」の場合、stdSale2（販売店コード2）は「00r」で始まる必要があります。この条件に合致しない場合に検出されます。"
+        "description": "stdSale1が「004359」の場合、stdSale2（販売店コード2）は「00r」で始まる必要があります。また、stdSale2が「00r」で始まる場合、stdSale1は「004359」である必要があります。この条件に合致しない場合に検出されます。"
     },
     "DEKISPART_CHK_0020": {
         "series": "DEKISPART",

@@ -322,9 +322,18 @@ def check_0018(row, errors_list):
 
 def check_0019(row, errors_list):
     """
-    DEKISPART_CHK_0019: stdSale1(販売店コード1)が004359かつstdSale2(販売店コード2)は00rで始まる
+    DEKISPART_CHK_0019: stdSale1とstdSale2の組み合わせチェック
+    - stdSale1が「004359」の場合、stdSale2は「00r」で始まる必要がある
+    - stdSale2が「00r」で始まる場合、stdSale1は「004359」である必要がある
     """
-    if str(row["stdSale1"]) == "004359" and not str(row["stdSale2"]).startswith("00r"):
+    std_sale1 = str(row["stdSale1"])
+    std_sale2 = str(row["stdSale2"])
+    
+    # パターン1: stdSale1が004359なのに、stdSale2が00rで始まらない
+    if std_sale1 == "004359" and not std_sale2.startswith("00r"):
+        _add_error_message(errors_list, row["stdUserID"], "DEKISPART_CHK_0019", row.get("stdID", ""))
+    # パターン2: stdSale2が00rで始まるのに、stdSale1が004359ではない
+    elif std_sale2.startswith("00r") and std_sale1 != "004359":
         _add_error_message(errors_list, row["stdUserID"], "DEKISPART_CHK_0019", row.get("stdID", ""))
 
 def check_0020(row, errors_list):
