@@ -938,7 +938,7 @@ def check_0058(row, errors_list):
 
 def check_0059(row, errors_list, customers_dict):
     """
-    DEKISPART_CHK_0059: 得意先マスタのD列（担当敬称）とstdFlg4（敬称フラグ）の整合性チェック
+    DEKISPART_CHK_0059: 得意先マスタのD列（会社敬称）とstdFlg4（敬称フラグ）の整合性チェック
     """
     # 得意先コードを取得
     std_sale1 = str(row.get("stdSale1", "")).strip()
@@ -951,8 +951,8 @@ def check_0059(row, errors_list, customers_dict):
     if not customer_info:
         return  # 得意先マスタに該当データがない場合はスキップ
     
-    # D列（担当敬称）を取得
-    honorific = str(customer_info.get("担当敬称", "")).strip()
+    # D列（会社敬称）を取得
+    honorific = str(customer_info.get("会社敬称", "")).strip()
     
     # stdFlg4（敬称フラグ）を取得
     honorific_flag = row.get("stdFlg4", False)
@@ -1271,7 +1271,7 @@ def load_customers_list_from_csv(file_path=None):
         return [] # 空のリストを返す
 
     encodings = ['cp932', 'shift_jis', 'utf-8', 'utf-8-sig']
-    required_columns = ["得意先コード", "得意先名１", "使用区分", "担当敬称"]
+    required_columns = ["得意先コード", "得意先名１", "使用区分", "会社敬称"]
     for encoding in encodings:
         try:
             df = pd.read_csv(file_path, encoding=encoding, engine='python', on_bad_lines='skip')
