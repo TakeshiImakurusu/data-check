@@ -1,20 +1,25 @@
 # -*- mode: python ; coding: utf-8 -*-
 block_cipher = None
+from PyInstaller.utils.hooks import copy_metadata
+
+datas_list = [
+    ('app_settings.json', '.'),
+    ('check_definitions.json', '.'),
+    ('dekispart.py', '.'),
+    ('innosite.py', '.'),
+    ('dekispart_school.py', '.'),
+    ('cloud.py', '.'),
+    ('common.py', '.'),
+    ('constants.py', '.'),
+]
+datas_list += copy_metadata('pytz')
+
 
 a = Analysis(
     ['data_check.py'],
     pathex=[],
     binaries=[],
-    datas=[
-        ('app_settings.json', '.'),
-        ('check_definitions.json', '.'),
-        ('dekispart.py', '.'),
-        ('innosite.py', '.'),
-        ('dekispart_school.py', '.'),
-        ('cloud.py', '.'),
-        ('common.py', '.'),
-        ('constants.py', '.'),
-    ],
+    datas=datas_list,
     hiddenimports=[
         'dekispart', 'innosite', 'dekispart_school', 'cloud',
         'common', 'constants',

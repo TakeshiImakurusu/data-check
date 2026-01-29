@@ -39,7 +39,7 @@ jobs:
       run: |
         echo "Creating comprehensive spec file with all dependencies..."
         echo "# -*- mode: python ; coding: utf-8 -*-" > data_check.spec
-        echo "from PyInstaller.utils.hooks import collect_submodules, collect_data_files" >> data_check.spec
+        echo "from PyInstaller.utils.hooks import collect_submodules, collect_data_files, copy_metadata" >> data_check.spec
         echo "import os" >> data_check.spec
         echo "" >> data_check.spec
         echo "block_cipher = None" >> data_check.spec
@@ -80,7 +80,7 @@ jobs:
         echo "        # OpenPyXL internals" >> data_check.spec
         echo "        'openpyxl.cell', 'openpyxl.cell._writer'," >> data_check.spec
         echo "        'openpyxl.workbook', 'openpyxl.worksheet'" >> data_check.spec
-        echo "    ] + pandas_modules + openpyxl_modules + dateutil_modules," >> data_check.spec
+        echo "    ] + pandas_modules + openpyxl_modules + dateutil_modules + copy_metadata('pytz')," >> data_check.spec
         echo "    hookspath=[]," >> data_check.spec
         echo "    runtime_hooks=[]," >> data_check.spec
         echo "    excludes=['matplotlib', 'scipy', 'IPython', 'pytest', 'numpy.testing']," >> data_check.spec
