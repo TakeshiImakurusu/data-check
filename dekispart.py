@@ -166,12 +166,39 @@ def check_0005(row, errors_list):
     """
     DEKISPART_CHK_0005: stdUserIDの桁数が8桁ではないこと
     """
-    user_id = str(row["stdUserID"]).strip()
-    if not user_id: # Skip if blank
+    val = row["stdUserID"]
+    if val is None or (isinstance(val, float) and pd.isna(val)) or str(val).strip() == "":
+        return
+    user_id = str(val).strip()
+
+    
+    # パターンA：半角数字ちょうど8桁
+    # パターンB：先頭8桁が半角数字 ＋ 9文字目以降に「数字以外の文字」が含まれている
+    # 上記以外はNG（例：7桁以下、9桁以上の純粋な数値など）
+    
+    # 8桁未満はNG
+    if len(user_id) < 8:
+        _add_error_message(errors_list, row["stdUserID"], "DEKISPART_CHK_0005", row.get("stdID", ""))
         return
 
-    if len(user_id) != 8:
+    # 先頭8桁が数字でない場合はNG
+    first_8_chars = user_id[:8]
+    if not (first_8_chars.isascii() and first_8_chars.isdigit()):
         _add_error_message(errors_list, row["stdUserID"], "DEKISPART_CHK_0005", row.get("stdID", ""))
+        return
+
+    # 8桁ちょうどならOK
+    if len(user_id) == 8:
+        return
+
+    # 9桁以上の場合
+    # 9文字目以降も含めて全て数字の場合はNG（誤入力防止）
+    if user_id.isascii() and user_id.isdigit():
+        _add_error_message(errors_list, row["stdUserID"], "DEKISPART_CHK_0005", row.get("stdID", ""))
+        return
+
+    # 9桁以上で、かつ数値以外の文字が含まれている場合はOK（パターンB）
+    return
 
 def check_0006(row, errors_list):
     """

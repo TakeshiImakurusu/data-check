@@ -32,7 +32,7 @@
         "name": "stdUserID先頭8桁半角チェック",
         "user_message": "stdUserIDの先頭8桁が半角ではありません。",
         "severity": "エラー",
-        "description": "stdUserIDの先頭8桁が半角英数字であるかを確認します。半角英数字以外が含まれる場合に検出されます。"
+        "description": "stdUserIDの先頭8桁が半角数字であるかを確認します。8桁未満、または9桁以上の純粋な数値、あるいは先頭8桁が数値でない場合に検出されます。"
     },
     "DEKISPART_CHK_0006": {
         "series": "DEKISPART",
