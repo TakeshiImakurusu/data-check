@@ -209,25 +209,27 @@ def check_0006(row, errors_list):
 
 def check_0007(row, errors_list):
     """
-    DEKISPART_CHK_0007: stdUserIDが半角数字8桁以外、または不正な特定値の場合NG
+    DEKISPART_CHK_0007: stdUserIDに不正な文字（スペース、改行コード）が含まれている場合に検出されます。
     """
-    user_id = str(row["stdUserID"]).strip()
-    if not user_id: # Skip if blank
+    user_id = str(row["stdUserID"])
+    if not user_id:  # Skip if blank (or None converted to 'None' -> potentially check original row["stdUserID"])
+        return
+        
+    # row["stdUserID"] can be None, float(nan), etc. 
+    # But existing code used str(row["stdUserID"]).strip().
+    # Let's start with raw value check to be safe about what "blank" means, 
+    # but the requirement is "stdUserID (ID(ﾃﾞｷｽ))".
+    
+    # If the original value was empty/null, we generally skip unless "Required" check fails elsewhere.
+    if pd.isna(row["stdUserID"]) or str(row["stdUserID"]) == "":
         return
 
-    is_half_width_digits = user_id.isascii() and user_id.isdigit()
-    invalid_specific_values = {"9", "13", "15"}
-
-    if user_id in invalid_specific_values:
-        _add_error_message(errors_list, row["stdUserID"], "DEKISPART_CHK_0007", row.get("stdID", ""))
-        return
-
-    if is_half_width_digits and 1 <= len(user_id) <= 7:
-        _add_error_message(errors_list, row["stdUserID"], "DEKISPART_CHK_0007", row.get("stdID", ""))
-        return
-
-    if not (is_half_width_digits and len(user_id) == 8):
-        _add_error_message(errors_list, row["stdUserID"], "DEKISPART_CHK_0007", row.get("stdID", ""))
+    # Check for invalid characters
+    # "文字" includes: Half-width space, Full-width space, CR, LF, CRLF (covered by CR and LF present)
+    invalid_chars = [" ", "　", "\r", "\n"]
+    
+    if any(char in user_id for char in invalid_chars):
+         _add_error_message(errors_list, row["stdUserID"], "DEKISPART_CHK_0007", row.get("stdID", ""))
 
 def check_0008(row, errors_list, duplicate_user_ids):
     """
