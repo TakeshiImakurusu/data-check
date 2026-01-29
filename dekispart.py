@@ -235,9 +235,14 @@ def check_0008(row, errors_list, duplicate_user_ids):
     """
     DEKISPART_CHK_0008: stdUserIDが重複していないこと
     """
+    # 空値(None, NaN, 空文字)は重複チェックの対象外とする
+    val = row["stdUserID"]
+    if pd.isna(val) or str(val) == "":
+        return
+
     # 事前に計算された重複IDセットに含まれているかチェック
-    if row["stdUserID"] in duplicate_user_ids:
-        _add_error_message(errors_list, row["stdUserID"], "DEKISPART_CHK_0008", row.get("stdID", ""))
+    if val in duplicate_user_ids:
+        _add_error_message(errors_list, val, "DEKISPART_CHK_0008", row.get("stdID", ""))
 
 def check_0009(row, errors_list):
     """
